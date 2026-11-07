@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Đăng nhập - Building Management</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body class="login-body">
+    <main class="login-stage">
+        <div class="login-orb orb-left"></div>
+        <div class="login-orb orb-right"></div>
+
+        <section class="login-card">
+            <div class="login-panel">
+                <a class="login-brand" href="{{ url_for('login') }}">
+                    <span class="brand-mark"><i></i><i></i><i></i></span>
+                    <span class="brand-copy"><strong>BUILDING</strong><small>MANAGEMENT SYSTEM</small></span>
+                </a>
+
+                <div class="login-form-container">
+                    <div class="login-heading">
+                        <h1>Chào mừng trở lại!</h1>
+                        <p>Vui lòng đăng nhập để tiếp tục.</p>
+                    </div>
+
+                    {% with messages = get_flashed_messages() %}
+                        {% if messages %}
+                            {% for message in messages %}
+                                <div class="alert-error">{{ message }}</div>
+                            {% endfor %}
+                        {% endif %}
+                    {% endwith %}
+
+                    <form method="POST" action="{{ url_for('login') }}">
+                        <label class="login-input">
+                            <span class="field-icon">♙</span>
+                            <input type="text" id="username" name="username"
+                                   placeholder="Tên đăng nhập" autocomplete="username" required>
+                        </label>
+
+                        <label class="login-input password-field">
+                            <span class="field-icon">♙</span>
+                            <input type="password" id="password" name="password"
+                                   placeholder="Mật khẩu" autocomplete="current-password" required>
+                            <button type="button" id="togglePassword" class="toggle-password" aria-label="Hiện mật khẩu">◉</button>
+                        </label>
+
+                        <button type="submit" class="login-button">Đăng nhập</button>
+                    </form>
+
+                    <div class="login-note">Hệ thống quản lý tòa nhà văn phòng</div>
+                </div>
+            </div>
+
+            <div class="login-art" aria-hidden="true">
+                <div class="art-glow"></div>
+                <div class="art-ribbon ribbon-back"></div>
+                <div class="art-ribbon ribbon-front"></div>
+                <div class="art-ball"></div>
+                <div class="art-floor-line"></div>
+            </div>
+        </section>
+    </main>
+    <script src="{{ url_for('static', filename='js/login.js') }}"></script>
+</body>
+</html>

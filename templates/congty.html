@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+
+{% block title %}Quản lý công ty{% endblock %}
+{% block page_heading %}Quản lý công ty{% endblock %}
+{% block page_sub %}Danh sách công ty thuê văn phòng{% endblock %}
+
+{% block content %}
+<table class="data-table">
+    <thead>
+        <tr><th>Mã công ty</th><th>Tên công ty</th></tr>
+    </thead>
+    <tbody>
+        {% for ct in ds %}
+        <tr><td>{{ ct.MaCT }}</td><td>{{ ct.TenCT }}</td></tr>
+        {% else %}
+        <tr><td colspan="2">Chưa có dữ liệu</td></tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endblock %}

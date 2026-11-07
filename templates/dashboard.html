@@ -1,0 +1,58 @@
+{% extends "base.html" %}
+
+{% block title %}Tổng quan - Quản lý tòa nhà{% endblock %}
+{% block page_heading %}Tổng quan hệ thống{% endblock %}
+
+{% block content %}
+<div class="stats-grid">
+    <div class="stat-card">
+        <div class="stat-icon">▦</div>
+        <div class="stat-info"><span>Tổng số công ty</span><h2>--</h2><small>Chưa có dữ liệu thống kê</small></div>
+        <b class="stat-arrow">›</b>
+    </div>
+    <div class="stat-card">
+        <div class="stat-icon">♟</div>
+        <div class="stat-info"><span>Nhân viên công ty</span><h2>--</h2><small>Chưa có dữ liệu thống kê</small></div>
+        <b class="stat-arrow">›</b>
+    </div>
+    <div class="stat-card">
+        <div class="stat-icon">◇</div>
+        <div class="stat-info"><span>Dịch vụ đang cung cấp</span><h2>--</h2><small>Chưa có dữ liệu thống kê</small></div>
+        <b class="stat-arrow">›</b>
+    </div>
+    <div class="stat-card">
+        <div class="stat-icon">♧</div>
+        <div class="stat-info"><span>Nhân viên tòa nhà</span><h2>--</h2><small>Chưa có dữ liệu thống kê</small></div>
+        <b class="stat-arrow">›</b>
+    </div>
+</div>
+
+<div class="dashboard-grid">
+    <section class="content-card management-card">
+        <div class="card-heading"><h2>Chức năng quản lý</h2><p>Truy cập nhanh các chức năng của hệ thống</p></div>
+        <div class="quick-actions">
+            <a href="#" class="action-item"><span class="action-icon">▦</span><span class="action-copy"><strong>Quản lý công ty</strong><small>Thông tin và diện tích thuê</small></span><b>›</b></a>
+            <a href="#" class="action-item"><span class="action-icon">♟</span><span class="action-copy"><strong>Nhân viên tòa nhà</strong><small>Phân công và tính lương</small></span><b>›</b></a>
+            <a href="#" class="action-item"><span class="action-icon">♙</span><span class="action-copy"><strong>Nhân viên công ty</strong><small>Hồ sơ nhân viên</small></span><b>›</b></a>
+            <a href="#" class="action-item"><span class="action-icon">▧</span><span class="action-copy"><strong>Ra vào tòa nhà</strong><small>Thẻ ra vào và lịch sử ra/vào</small></span><b>›</b></a>
+            <a href="#" class="action-item"><span class="action-icon">◇</span><span class="action-copy"><strong>Quản lý dịch vụ</strong><small>Đăng ký và theo dõi dịch vụ</small></span><b>›</b></a>
+            <a href="#" class="action-item"><span class="action-icon">▥</span><span class="action-copy"><strong>Báo cáo thống kê</strong><small>Chi phí, ra vào, lương</small></span><b>›</b></a>
+        </div>
+    </section>
+
+    <section class="content-card system-card">
+        <div class="card-heading"><h2>Thông tin hệ thống</h2><p>Trạng thái và thông tin vận hành</p></div>
+        <div class="overview-item"><span>▦　Trạng thái hệ thống</span><strong class="online-status">Hoạt động</strong></div>
+        <div class="overview-item"><span>▤　Cơ sở dữ liệu</span><strong>Chưa kết nối</strong></div>
+        <div class="overview-item"><span>ⓘ　Phiên bản</span><strong>1.0.0</strong></div>
+        <div class="overview-item"><span>♟　Người sử dụng</span><strong>{{ username }}</strong></div>
+    </section>
+
+    <aside class="notice-card">
+        <div class="notice-heading"><span class="notice-icon">♟</span><h2>Thông báo</h2></div>
+        <h3>Hệ thống đã sẵn sàng!</h3>
+        <p>Cảm ơn bạn đã sử dụng hệ thống quản lý tòa nhà. Các số liệu sẽ hiển thị khi dữ liệu được kết nối.</p>
+        <div class="notice-decoration"></div>
+    </aside>
+</div>
+{% endblock %}
