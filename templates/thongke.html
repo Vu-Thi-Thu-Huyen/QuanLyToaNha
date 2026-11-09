@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+
+{% block title %}Thống kê số bản ghi{% endblock %}
+{% block page_heading %}Thống kê số bản ghi{% endblock %}
+{% block page_sub %}Kiểm tra số lượng bản ghi của từng bảng so với yêu cầu tối thiểu{% endblock %}
+
+{% block content %}
+<p class="summary-line">Đạt yêu cầu: <strong>{{ so_dat }}/{{ tong }}</strong> bảng</p>
+
+<table class="data-table">
+    <thead>
+        <tr><th>Bảng</th><th>Số bản ghi</th><th>Tối thiểu</th><th>Trạng thái</th></tr>
+    </thead>
+    <tbody>
+        {% for d in ds %}
+        <tr>
+            <td>{{ d.bang }}</td>
+            <td>{{ d.so_luong if d.so_luong is not none else '--' }}</td>
+            <td>{{ d.toi_thieu }}</td>
+            <td>
+                {% if d.trang_thai == 'dat' %}<span class="badge badge-ok">Đạt</span>
+                {% elif d.trang_thai == 'chua_dat' %}<span class="badge badge-no">Chưa đạt</span>
+                {% elif d.trang_thai == 'chua_co_bang' %}<span class="badge badge-na">Chưa có bảng</span>
+                {% else %}<span class="badge badge-no">Lỗi đọc bảng</span>{% endif %}
+            </td>
+        </tr>
+        {% else %}
+        <tr><td colspan="4">Không có dữ liệu</td></tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endblock %}

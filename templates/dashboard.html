@@ -7,22 +7,22 @@
 <div class="stats-grid">
     <div class="stat-card">
         <div class="stat-icon">▦</div>
-        <div class="stat-info"><span>Tổng số công ty</span><h2>--</h2><small>Chưa có dữ liệu thống kê</small></div>
+        <div class="stat-info"><span>Tổng số công ty</span><h2>{{ so_lieu.cong_ty if so_lieu.cong_ty is not none else '--' }}</h2><small>{{ 'Công ty đang thuê văn phòng' if so_lieu.cong_ty is not none else 'Chưa có dữ liệu thống kê' }}</small></div>
         <b class="stat-arrow">›</b>
     </div>
     <div class="stat-card">
         <div class="stat-icon">♟</div>
-        <div class="stat-info"><span>Nhân viên công ty</span><h2>--</h2><small>Chưa có dữ liệu thống kê</small></div>
+        <div class="stat-info"><span>Nhân viên công ty</span><h2>{{ so_lieu.nv_cong_ty if so_lieu.nv_cong_ty is not none else '--' }}</h2><small>{{ 'Nhân viên của các công ty' if so_lieu.nv_cong_ty is not none else 'Chưa có dữ liệu thống kê' }}</small></div>
         <b class="stat-arrow">›</b>
     </div>
     <div class="stat-card">
         <div class="stat-icon">◇</div>
-        <div class="stat-info"><span>Dịch vụ đang cung cấp</span><h2>--</h2><small>Chưa có dữ liệu thống kê</small></div>
+        <div class="stat-info"><span>Dịch vụ đang cung cấp</span><h2>{{ so_lieu.dich_vu if so_lieu.dich_vu is not none else '--' }}</h2><small>{{ 'Dịch vụ của tòa nhà' if so_lieu.dich_vu is not none else 'Chưa có dữ liệu thống kê' }}</small></div>
         <b class="stat-arrow">›</b>
     </div>
     <div class="stat-card">
         <div class="stat-icon">♧</div>
-        <div class="stat-info"><span>Nhân viên tòa nhà</span><h2>--</h2><small>Chưa có dữ liệu thống kê</small></div>
+        <div class="stat-info"><span>Nhân viên tòa nhà</span><h2>{{ so_lieu.nv_toa_nha if so_lieu.nv_toa_nha is not none else '--' }}</h2><small>{{ 'Nhân viên vận hành tòa nhà' if so_lieu.nv_toa_nha is not none else 'Chưa có dữ liệu thống kê' }}</small></div>
         <b class="stat-arrow">›</b>
     </div>
 </div>
@@ -43,7 +43,7 @@
     <section class="content-card system-card">
         <div class="card-heading"><h2>Thông tin hệ thống</h2><p>Trạng thái và thông tin vận hành</p></div>
         <div class="overview-item"><span>▦　Trạng thái hệ thống</span><strong class="online-status">Hoạt động</strong></div>
-        <div class="overview-item"><span>▤　Cơ sở dữ liệu</span><strong>Chưa kết nối</strong></div>
+        <div class="overview-item"><span>▤　Cơ sở dữ liệu</span><strong>{{ 'Đã kết nối' if db_ok else 'Chưa kết nối' }}</strong></div>
         <div class="overview-item"><span>ⓘ　Phiên bản</span><strong>1.0.0</strong></div>
         <div class="overview-item"><span>♟　Người sử dụng</span><strong>{{ username }}</strong></div>
     </section>

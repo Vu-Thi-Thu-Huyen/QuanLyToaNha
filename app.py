@@ -8,10 +8,14 @@ from auth import login_required
 
 from routes.congty import congty_bp
 
+from routes.thongke import thongke_bp
+
 app = Flask(__name__)
 app.config.from_object(Config)
 
 app.register_blueprint(congty_bp)
+
+app.register_blueprint(thongke_bp)
 
 # Đưa tên người dùng vào mọi template (kể cả template của các Blueprint)
 @app.context_processor
@@ -56,10 +60,34 @@ def login():
 
 
 # Trang chu Dashboard
+def dem_bang(cur, bang):
+    # Đếm số dòng của một bảng; bảng chưa có thì trả về None
+    try:
+        cur.execute(f"SELECT COUNT(*) FROM `{bang}`")
+        return cur.fetchone()[0]
+    except Exception:
+        return None
+
+
 @app.route('/dashboard')
 @login_required
 def dashboard():
-    return render_template('dashboard.html')
+    so_lieu = {'cong_ty': None, 'nv_cong_ty': None, 'dich_vu': None, 'nv_toa_nha': None}
+    db_ok = False
+    try:
+        conn = get_connection()
+        try:
+            cur = conn.cursor()
+            so_lieu['cong_ty'] = dem_bang(cur, 'CONGTY')
+            so_lieu['nv_cong_ty'] = dem_bang(cur, 'NHANVIEN_CONGTY')
+            so_lieu['dich_vu'] = dem_bang(cur, 'DICHVU')
+            so_lieu['nv_toa_nha'] = dem_bang(cur, 'NHANVIEN_TOANHA')
+            db_ok = True
+        finally:
+            conn.close()
+    except Exception:
+        pass
+    return render_template('dashboard.html', so_lieu=so_lieu, db_ok=db_ok)
 
 
 # Dang xuat
