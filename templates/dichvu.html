@@ -1,0 +1,71 @@
+{% extends "base.html" %}
+
+{% block title %}Tiền dịch vụ{% endblock %}
+{% block page_heading %}Tiền dịch vụ theo tháng{% endblock %}
+{% block page_sub %}Chi tiết tiền từng dịch vụ của từng công ty{% endblock %}
+
+{% block content %}
+<form method="get" style="margin-bottom:16px;">
+    <label for="thang">Tháng:</label>
+    <input type="number" id="thang" name="thang" min="1" max="12" value="{{ thang }}">
+    <label for="nam">Năm:</label>
+    <input type="number" id="nam" name="nam" value="{{ nam }}">
+
+        <input type="text" name="q" list="ds-congty" value="{{ tu_khoa }}"
+           placeholder="Chọn hoặc gõ tên công ty..." autocomplete="off">
+    <datalist id="ds-congty">
+        {% for c in ds_congty %}
+        <option value="{{ c }}"></option>
+        {% endfor %}
+    </datalist>
+
+    <select name="dv" onchange="this.form.submit()">
+        <option value="">-- Tất cả dịch vụ --</option>
+        {% for d in ds_dichvu %}
+        <option value="{{ d }}" {% if d == dv %}selected{% endif %}>{{ d }}</option>
+        {% endfor %}
+    </select>
+
+    <button type="submit">Xem</button>
+    {% if tu_khoa or dv %}
+    <a href="{{ url_for('dichvu.tien_dich_vu', thang=thang, nam=nam) }}">Xóa lọc</a>
+    {% endif %}
+</form>
+
+<table class="data-table">
+    <thead>
+        <tr>
+            <th>Công ty</th>
+            <th>Dịch vụ</th>
+            <th>Đơn giá cơ bản</th>
+            <th>Hệ số</th>
+            <th>Số ngày dùng</th>
+            <th>Số ngày trong tháng</th>
+            <th>Tiền dịch vụ</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for r in ds %}
+        <tr>
+            <td>{{ r.TenCT }}</td>
+            <td>{{ r.TenDV }}</td>
+            <td>{{ "{:,.0f}".format(r.DonGia).replace(',', '.') }}</td>
+            <td>{{ r.HeSo }}</td>
+            <td>{{ r.SoNgay }}</td>
+            <td>{{ r.SoNgayTrongThang }}</td>
+            <td>{{ "{:,.0f}".format(r.TienDV).replace(',', '.') }}</td>
+        </tr>
+        {% else %}
+        <tr><td colspan="7">Chưa có dữ liệu</td></tr>
+        {% endfor %}
+    </tbody>
+    {% if ds %}
+    <tfoot>
+        <tr>
+            <td colspan="6"><strong>Tổng cộng</strong></td>
+            <td><strong>{{ "{:,.0f}".format(tong).replace(',', '.') }}</strong></td>
+        </tr>
+    </tfoot>
+    {% endif %}
+</table>
+{% endblock %}

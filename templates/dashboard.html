@@ -31,12 +31,12 @@
     <section class="content-card management-card">
         <div class="card-heading"><h2>Chức năng quản lý</h2><p>Truy cập nhanh các chức năng của hệ thống</p></div>
         <div class="quick-actions">
-            <a href="#" class="action-item"><span class="action-icon">▦</span><span class="action-copy"><strong>Quản lý công ty</strong><small>Thông tin và diện tích thuê</small></span><b>›</b></a>
-            <a href="#" class="action-item"><span class="action-icon">♟</span><span class="action-copy"><strong>Nhân viên tòa nhà</strong><small>Phân công và tính lương</small></span><b>›</b></a>
-            <a href="#" class="action-item"><span class="action-icon">♙</span><span class="action-copy"><strong>Nhân viên công ty</strong><small>Hồ sơ nhân viên</small></span><b>›</b></a>
-            <a href="#" class="action-item"><span class="action-icon">▧</span><span class="action-copy"><strong>Ra vào tòa nhà</strong><small>Thẻ ra vào và lịch sử ra/vào</small></span><b>›</b></a>
-            <a href="#" class="action-item"><span class="action-icon">◇</span><span class="action-copy"><strong>Quản lý dịch vụ</strong><small>Đăng ký và theo dõi dịch vụ</small></span><b>›</b></a>
-            <a href="#" class="action-item"><span class="action-icon">▥</span><span class="action-copy"><strong>Báo cáo thống kê</strong><small>Chi phí, ra vào, lương</small></span><b>›</b></a>
+            <a href="{{ url_for('congty.danh_sach') }}" class="action-item"><span class="action-icon">▦</span><span class="action-copy"><strong>Quản lý công ty</strong><small>Thông tin và diện tích thuê</small></span><b>›</b></a>
+            <a href="{{ url_for('luong.bang_luong') }}" class="action-item"><span class="action-icon">♟</span><span class="action-copy"><strong>Nhân viên tòa nhà</strong><small>Phân công và tính lương</small></span><b>›</b></a>
+            <a href="{{ url_for('thongke.trang_thong_ke') }}" class="action-item"><span class="action-icon">▥</span><span class="action-copy"><strong>Thống kê bản ghi</strong><small>Số bản ghi của từng bảng</small></span><b>›</b></a>
+            <a href="{{ url_for('ravao.theo_ngay') }}" class="action-item"><span class="action-icon">▧</span><span class="action-copy"><strong>Ra vào tòa nhà</strong><small>Thẻ ra vào và lịch sử ra/vào</small></span><b>›</b></a>
+            <a href="{{ url_for('dichvu.tien_dich_vu') }}" class="action-item"><span class="action-icon">◇</span><span class="action-copy"><strong>Quản lý dịch vụ</strong><small>Đăng ký và theo dõi dịch vụ</small></span><b>›</b></a>
+            <a href="{{ url_for('baocao.bao_cao') }}" class="action-item"><span class="action-icon">▥</span><span class="action-copy"><strong>Báo cáo thống kê</strong><small>Chi phí, ra vào, lương</small></span><b>›</b></a>
         </div>
     </section>
 

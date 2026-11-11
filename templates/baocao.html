@@ -1,0 +1,81 @@
+{% extends "base.html" %}
+
+{% block title %}Báo cáo thống kê{% endblock %}
+{% block page_heading %}Báo cáo thống kê{% endblock %}
+{% block page_sub %}Các ràng buộc về số lượng bản ghi của hệ thống{% endblock %}
+
+{% block content %}
+
+<h2>1. Số nhân viên của từng công ty</h2>
+<table class="data-table">
+    <thead>
+        <tr>
+            <th>Mã CT</th>
+            <th>Tên công ty</th>
+            <th>Cho phép</th>
+            <th>Hiện có</th>
+            <th>Còn trống</th>
+            <th>Trạng thái</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for r in so_nv %}
+        <tr>
+            <td>{{ r.MaCT }}</td>
+            <td>{{ r.TenCT }}</td>
+            <td>{{ r.ChoPhep }}</td>
+            <td>{{ r.HienCo }}</td>
+            <td>{{ r.ConTrong }}</td>
+            <td>
+                {% if r.ConTrong >= 0 %}<span class="badge badge-ok">Hợp lệ</span>
+                {% else %}<span class="badge badge-no">Vượt quá</span>{% endif %}
+            </td>
+        </tr>
+        {% else %}
+        <tr><td colspan="6">Chưa có dữ liệu</td></tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+<h2 style="margin-top:28px;">2. Công ty đang thiếu dịch vụ bắt buộc</h2>
+{% if thieu_dv %}
+<table class="data-table">
+    <thead>
+        <tr><th>Mã CT</th><th>Tên công ty</th><th>Mã DV</th><th>Dịch vụ còn thiếu</th></tr>
+    </thead>
+    <tbody>
+        {% for r in thieu_dv %}
+        <tr>
+            <td>{{ r.MaCT }}</td>
+            <td>{{ r.TenCT }}</td>
+            <td>{{ r.MaDV }}</td>
+            <td>{{ r.TenDV }}</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% else %}
+<p><span class="badge badge-ok">Hợp lệ</span> Tất cả công ty đều đã đăng ký đủ dịch vụ bắt buộc.</p>
+{% endif %}
+
+<h2 style="margin-top:28px;">3. Nhân viên công ty chưa có thẻ ra vào</h2>
+{% if chua_the %}
+<table class="data-table">
+    <thead>
+        <tr><th>Mã NV</th><th>Họ tên</th><th>Mã CT</th></tr>
+    </thead>
+    <tbody>
+        {% for r in chua_the %}
+        <tr>
+            <td>{{ r.MaNV }}</td>
+            <td>{{ r.HoTen }}</td>
+            <td>{{ r.MaCT }}</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% else %}
+<p><span class="badge badge-ok">Hợp lệ</span> Mọi nhân viên đều có thẻ ra vào đang hoạt động.</p>
+{% endif %}
+
+{% endblock %}

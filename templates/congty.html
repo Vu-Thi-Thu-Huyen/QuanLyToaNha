@@ -2,18 +2,51 @@
 
 {% block title %}Quản lý công ty{% endblock %}
 {% block page_heading %}Quản lý công ty{% endblock %}
-{% block page_sub %}Danh sách công ty thuê văn phòng{% endblock %}
+{% block page_sub %}Công ty thuê văn phòng, tiền thuê và tiền dịch vụ tháng hiện tại{% endblock %}
 
 {% block content %}
+
+<form method="get" style="margin-bottom:16px;">
+    <input type="text" name="q" value="{{ tu_khoa }}" placeholder="Tìm theo tên, mã số thuế, lĩnh vực...">
+    <button type="submit">Tìm</button>
+    {% if tu_khoa %}<a href="{{ url_for('congty.danh_sach') }}">Xóa lọc</a>{% endif %}
+</form>
+
 <table class="data-table">
     <thead>
-        <tr><th>Mã công ty</th><th>Tên công ty</th></tr>
+        <tr>
+            <th>Mã CT</th>
+            <th>Tên công ty</th>
+            <th>Mã số thuế</th>
+            <th>Vốn điều lệ</th>
+            <th>Lĩnh vực</th>
+            <th>Số NV</th>
+            <th>Địa chỉ</th>
+            <th>Số điện thoại</th>
+            <th>Diện tích (m²)</th>
+            <th>Tiền thuê</th>
+            <th>Tiền dịch vụ</th>
+            <th>Tổng chi phí</th>
+        </tr>
     </thead>
     <tbody>
         {% for ct in ds %}
-        <tr><td>{{ ct.MaCT }}</td><td>{{ ct.TenCT }}</td></tr>
+        <tr>
+            <td>{{ ct.MaCT }}</td>
+            <td>{{ ct.TenCT }}</td>
+            <td>{{ ct.MaSoThue }}</td>
+            <td>{{ "{:,.0f}".format(ct.VonDieuLe).replace(',', '.') }}</td>
+            <td>{{ ct.LinhVuc }}</td>
+            <td>{{ ct.SoNhanVien }}</td>
+            <td>{{ ct.DiaChi }}</td>
+            <td>{{ ct.SoDienThoai }}</td>
+            <td>{{ ct.DienTichThue }}</td>
+            <td>{{ "{:,.0f}".format(ct.TienThue).replace(',', '.') }}</td>
+            <td>{{ "{:,.0f}".format(ct.TienDichVu).replace(',', '.') }}</td>
+            <td><strong>{{ "{:,.0f}".format(ct.TongChiPhi).replace(',', '.') }}</strong></td>
+        </tr>
         {% else %}
-        <tr><td colspan="2">Chưa có dữ liệu</td></tr>
+        <tr><td colspan="12">Chưa có dữ liệu</td></tr>
         {% endfor %}
     </tbody>
 </table>

@@ -1,0 +1,52 @@
+{% extends "base.html" %}
+
+{% block title %}Ra vào theo ngày{% endblock %}
+{% block page_heading %}Ra vào theo ngày{% endblock %}
+{% block page_sub %}Số lần và vị trí ra/vào của nhân viên công ty trong ngày chọn{% endblock %}
+
+{% block content %}
+<form method="get" style="margin-bottom:16px;">
+    <label for="ngay">Chọn ngày:</label>
+    <input type="date" id="ngay" name="ngay" value="{{ ngay }}">
+    <input type="text" name="q" value="{{ tu_khoa }}" placeholder="Tìm theo mã hoặc họ tên nhân viên...">
+    <button type="submit">Xem</button>
+    {% if tu_khoa %}
+    <a href="{{ url_for('ravao.theo_ngay', ngay=ngay) }}">Xóa lọc</a>
+    {% endif %}
+</form>
+
+<table class="data-table">
+    <thead>
+        <tr>
+            <th>Mã NV</th>
+            <th>Họ tên</th>
+            <th>CMT/CCCD</th>
+            <th>Ngày sinh</th>
+            <th>Số điện thoại</th>
+            <th>Công ty</th>
+            <th>Vị trí</th>
+            <th>Số lần vào</th>
+            <th>Số lần ra</th>
+            <th>Tổng số lần</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for r in ds %}
+        <tr>
+            <td>{{ r.MaNV }}</td>
+            <td>{{ r.HoTen }}</td>
+            <td>{{ r.CCCD }}</td>
+            <td>{{ r.NgaySinh.strftime('%d/%m/%Y') if r.NgaySinh else '' }}</td>
+            <td>{{ r.SoDienThoai }}</td>
+            <td>{{ r.TenCT }}</td>
+            <td>{{ r.ViTri }}</td>
+            <td>{{ r.SoLanVao }}</td>
+            <td>{{ r.SoLanRa }}</td>
+            <td><strong>{{ r.TongSoLan }}</strong></td>
+        </tr>
+        {% else %}
+        <tr><td colspan="10">Chưa có dữ liệu</td></tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endblock %}

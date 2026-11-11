@@ -18,10 +18,10 @@
             <a href="{{ url_for('dashboard') }}" class="{{ 'active' if request.endpoint == 'dashboard' else '' }}"><span>▦</span> Tổng quan</a>
             <a href="{{ url_for('congty.danh_sach') }}" class="{{ 'active' if request.blueprint == 'congty' else '' }}"><span>▣</span> Quản lý công ty</a>
             <a href="{{ url_for('thongke.trang_thong_ke') }}" class="{{ 'active' if request.blueprint == 'thongke' else '' }}"><span>▥</span> Thống kê bản ghi</a>
-            <a href="#"><span>◇</span> Quản lý dịch vụ</a>
-            <a href="#"><span>♧</span> Nhân viên tòa nhà</a>
-            <a href="#"><span>▧</span> Ra vào tòa nhà</a>
-            <a href="#"><span>▥</span> Báo cáo thống kê</a>
+            <a href="{{ url_for('dichvu.tien_dich_vu') }}" class="{{ 'active' if request.blueprint == 'dichvu' else '' }}"><span>◇</span> Quản lý dịch vụ</a>
+            <a href="{{ url_for('luong.bang_luong') }}" class="{{ 'active' if request.blueprint == 'luong' else '' }}"><span>♧</span> Nhân viên tòa nhà</a>
+            <a href="{{ url_for('ravao.theo_ngay') }}" class="{{ 'active' if request.blueprint == 'ravao' else '' }}"><span>▧</span> Ra vào tòa nhà</a>
+            <a href="{{ url_for('baocao.bao_cao') }}" class="{{ 'active' if request.blueprint == 'baocao' else '' }}"><span>▥</span> Báo cáo thống kê</a>
         </nav>
 
         <a href="{{ url_for('logout') }}" class="sidebar-logout"><span>⇥</span> Đăng xuất</a>

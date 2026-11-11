@@ -10,12 +10,28 @@ from routes.congty import congty_bp
 
 from routes.thongke import thongke_bp
 
+from routes.ravao import ravao_bp
+
+from routes.dichvu import dichvu_bp
+
+from routes.luong import luong_bp
+
+from routes.baocao import baocao_bp
+
 app = Flask(__name__)
 app.config.from_object(Config)
 
 app.register_blueprint(congty_bp)
 
 app.register_blueprint(thongke_bp)
+
+app.register_blueprint(ravao_bp)
+
+app.register_blueprint(dichvu_bp)
+
+app.register_blueprint(luong_bp)
+
+app.register_blueprint(baocao_bp)
 
 # Đưa tên người dùng vào mọi template (kể cả template của các Blueprint)
 @app.context_processor
