@@ -5,23 +5,46 @@
 {% block page_sub %}Lương theo vị trí cộng hoa hồng dịch vụ phụ trách{% endblock %}
 
 {% block content %}
-<form method="get" style="margin-bottom:16px;">
-    <label for="thang">Tháng:</label>
-    <input type="number" id="thang" name="thang" min="1" max="12" value="{{ thang }}">
-    <label for="nam">Năm:</label>
-    <input type="number" id="nam" name="nam" value="{{ nam }}">
-    <input type="text" name="q" value="{{ tu_khoa }}" placeholder="Tìm theo mã hoặc họ tên nhân viên...">
-    <button type="submit">Xem</button>
+
+
+<form method="get" style="margin-bottom:16px; display:flex; gap:10px; align-items:center; flex-wrap:wrap;">
+
+    <input
+        type="text"
+        name="q"
+        value="{{ tu_khoa }}"
+        list="danh-sach-nhan-vien"
+        placeholder="Nhập hoặc chọn tên, mã nhân viên..."
+        autocomplete="off"
+        style="width:320px;"
+    >
+
+    <datalist id="danh-sach-nhan-vien">
+        {% for ten in ten_nhan_vien %}
+            <option value="{{ ten }}">
+        {% endfor %}
+    </datalist>
+
+    <input type="number" name="thang" value="{{ thang }}" min="1" max="12" style="width:80px;">
+    <input type="number" name="nam" value="{{ nam }}" min="2000" style="width:100px;">
+
+    <button type="submit">Tìm</button>
+
     {% if tu_khoa %}
-    <a href="{{ url_for('luong.bang_luong') }}">Xóa lọc</a>
+        <a href="{{ url_for('luong.bang_luong', thang=thang, nam=nam) }}">Xóa lọc</a>
     {% endif %}
+
 </form>
+
 
 <table class="data-table">
     <thead>
         <tr>
             <th>Mã NV</th>
             <th>Họ tên</th>
+            <th>Ngày sinh</th>
+            <th>Địa chỉ</th>
+            <th>Số Điện Thoại</th>
             <th>Vị trí</th>
             <th>Dịch vụ</th>
             <th>Bậc</th>

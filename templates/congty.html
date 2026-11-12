@@ -6,11 +6,33 @@
 
 {% block content %}
 
-<form method="get" style="margin-bottom:16px;">
-    <input type="text" name="q" value="{{ tu_khoa }}" placeholder="Tìm theo tên, mã số thuế, lĩnh vực...">
+
+<form method="get" style="margin-bottom:16px; display:flex; gap:10px; align-items:center; flex-wrap:wrap;">
+
+    <input
+        type="text"
+        name="q"
+        value="{{ tu_khoa }}"
+        list="danh-sach-cong-ty"
+        placeholder="Nhập hoặc chọn tên công ty..."
+        autocomplete="off"
+        style="width:320px;"
+    >
+
+    <datalist id="danh-sach-cong-ty">
+        {% for ten in ten_cong_ty %}
+            <option value="{{ ten }}">
+        {% endfor %}
+    </datalist>
+
     <button type="submit">Tìm</button>
-    {% if tu_khoa %}<a href="{{ url_for('congty.danh_sach') }}">Xóa lọc</a>{% endif %}
+
+    {% if tu_khoa %}
+        <a href="{{ url_for('congty.danh_sach') }}">Xóa lọc</a>
+    {% endif %}
+
 </form>
+
 
 <table class="data-table">
     <thead>
