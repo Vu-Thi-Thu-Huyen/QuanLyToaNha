@@ -1,12 +1,8 @@
-/* ===================================================================== */
-/* QUAN LY TOA NHA VAN PHONG - FILE SQL TONG (MySQL 8.0+) */
+/* QUAN LY TOA NHA VAN PHONG */
+/* Yeu cau: MySQL 8.0.16 tro len */
 /* Gop tu phan cua Nguoi 1 (Chien), Nguoi 2 (Diep Anh), Nguoi 3 (Thuy), Nguoi 4 (Quang Anh) */
-/* da chinh theo de bai PROJECT 4. CHUA chay thu tren MySQL that: */
-/* hay chay toan bo trong Workbench va bao lai loi (neu co). */
-
-/* Muon chay lai tu dau: bo comment dong DROP DATABASE ben duoi */
-/* (se xoa ca TAIKHOAN; app.py tu tao lai admin / 123456 khi khoi dong). */
-/* ===================================================================== */
+/* Neu muon tao lai tu dau, bo comment dong DROP DATABASE ben duoi.
+   Luu y: lenh nay se xoa toan bo du lieu trong database. */
 /* DROP DATABASE IF EXISTS QuanLyToaNha; */
 CREATE DATABASE IF NOT EXISTS QuanLyToaNha CHARACTER SET utf8mb4;
 USE QuanLyToaNha;
@@ -141,7 +137,7 @@ CREATE TABLE IF NOT EXISTS PHANCONG (
     CONSTRAINT uq_pc_nv_thang UNIQUE (MaNV, Thang, Nam)
 ) ENGINE=InnoDB;
 
-/* ---------- Tai khoan dang nhap cua ung dung (giu ten cot de app.py khong phai sua) ---------- */
+/* ---------- Tai khoan dang nhap cua ung dung ---------- */
 CREATE TABLE IF NOT EXISTS TAIKHOAN (
     ma_tai_khoan  INT AUTO_INCREMENT PRIMARY KEY,
     ten_dang_nhap VARCHAR(50)  NOT NULL UNIQUE,
@@ -621,28 +617,35 @@ INSERT IGNORE INTO PHANCONG (MaNV, MaDV, ViTri, Bac, Thang, Nam, HeSoViTri, SoNg
 ('NVT10', 'DV04', 'Bảo vệ cổng chính',          2, 11, 2026, 1.00, 26);
 
 
-USE QuanLyToaNha;
-
 -- 1) Công ty mới chỉ đăng ký "Vệ sinh", chưa đăng ký "Bảo vệ" (bắt buộc)
-USE QuanLyToaNha;
-
-INSERT INTO CONGTY
+INSERT IGNORE INTO CONGTY
 (MaCT, TenCT, MaSoThue, VonDieuLe, LinhVuc, SoNhanVien, DiaChi, SoDienThoai, DienTichThue, DonGiaThue) VALUES
-('CT012', 'Công ty TNHH Nội thất Gia Phát', '0101234572', 1200000000, 'Nội thất', 8,
+('CT011', 'Công ty TNHH Nội thất Gia Phát', '0101234572', 1200000000, 'Nội thất', 8,
  'Tầng 3, phòng 308', '0241234512', 70, 270000);
 
--- 2) Nhân viên mới của công ty này, chưa được cấp thẻ ra vào
-USE QuanLyToaNha;
+INSERT IGNORE INTO SUDUNGDICHVU (MaCT, MaDV, NgayBatDau, NgayKetThuc)
+VALUES ('CT011', 'DV01', '2026-11-01', NULL);
 
-INSERT INTO NHANVIEN_CONGTY
+-- 2) Nhân viên chưa được cấp thẻ ra vào
+INSERT IGNORE INTO NHANVIEN_CONGTY
 (MaNV, MaCT, HoTen, CCCD, NgaySinh, GioiTinh, SoDienThoai, ChucVu) VALUES
-('NV32', 'CT001', 'Nguyễn Văn Phúc', '002200000032', '1997-06-15', 'Nam', '0911000032', 'Nhân viên');
-
-USE QuanLyToaNha;
+('NV11', 'CT001', 'Nguyễn Văn Phúc', '002200000032', '1997-06-15', 'Nam', '0911000032', 'Nhân viên');
 
 INSERT INTO THE_RA_VAO (MaThe, MaNV, NgayCap, NgayHetHan, TrangThai)
-VALUES ('THE32', 'NV32', '2026-11-11', '2027-11-11', 'HOAT_DONG');
+SELECT CONCAT('THE', SUBSTRING(nv.MaNV, 3)), nv.MaNV, '2026-01-01', '2027-01-01', 'HOAT_DONG'
+FROM NHANVIEN_CONGTY nv
+WHERE nv.MaNV <> 'NV11'
+  AND NOT EXISTS (SELECT 1 FROM THE_RA_VAO t WHERE t.MaNV = nv.MaNV);
 
+INSERT INTO SUDUNGDICHVU (MaCT, MaDV, NgayBatDau, NgayKetThuc)
+SELECT c.MaCT, d.MaDV, '2026-01-01', NULL
+FROM CONGTY c JOIN DICHVU d ON d.BatBuoc = TRUE
+WHERE c.MaCT <> 'CT011'
+  AND NOT EXISTS (SELECT 1 FROM SUDUNGDICHVU s WHERE s.MaCT = c.MaCT AND s.MaDV = d.MaDV);
+
+INSERT INTO SUDUNGDICHVU (MaCT, MaDV, NgayBatDau, NgayKetThuc)
+SELECT 'CT011', 'DV01', '2026-11-01', NULL
+WHERE NOT EXISTS (SELECT 1 FROM SUDUNGDICHVU WHERE MaCT = 'CT011' AND MaDV = 'DV01');
 
 /* ===================================================================== */
 /* PHAN 6. CAC CAU KIEM TRA (bo comment de thu) */
