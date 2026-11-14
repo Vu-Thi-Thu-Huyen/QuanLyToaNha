@@ -41,10 +41,10 @@ def bang_luong():
 
             # Lấy bảng lương
             cur.execute(
-                "SELECT v.MaNV, v.HoTen, n.NgaySinh, v.DiaChi, "
+                "SELECT v.MaNV, v.HoTen, n.GioiTinh, n.NgaySinh, v.DiaChi, "
                 "v.SoDienThoai, v.ViTri, v.TenDV, v.Bac, "
                 "v.SoNgayCong, v.HeSoViTri, v.LuongTheoViTri, "
-                "v.HoaHong, v.TongLuong "
+                "v.DoanhThuDV, v.HoaHong, v.TongLuong "
                 "FROM V_BANG_LUONG v "
                 "JOIN NHANVIEN_TOANHA n ON n.MaNV = v.MaNV "
                 "WHERE v.Thang = %s AND v.Nam = %s "

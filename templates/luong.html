@@ -42,6 +42,7 @@
         <tr>
             <th>Mã NV</th>
             <th>Họ tên</th>
+            <th>Giới tính</th>
             <th>Ngày sinh</th>
             <th>Địa chỉ</th>
             <th>Số Điện Thoại</th>
@@ -51,6 +52,7 @@
             <th>Ngày công</th>
             <th>Hệ số vị trí</th>
             <th>Lương theo vị trí</th>
+            <th>Doanh thu DV</th>
             <th>Hoa hồng</th>
             <th>Tổng lương</th>
         </tr>
@@ -60,6 +62,7 @@
         <tr>
             <td>{{ r.MaNV }}</td>
             <td>{{ r.HoTen }}</td>
+            <td>{{ 'Nữ' if r.GioiTinh == 'Nu' else (r.GioiTinh or '') }}</td>
             <td>{{ r.NgaySinh.strftime('%d/%m/%Y') if r.NgaySinh else '' }}</td>
             <td>{{ r.DiaChi }}</td>
             <td>{{ r.SoDienThoai }}</td>
@@ -69,17 +72,18 @@
             <td>{{ r.SoNgayCong }}</td>
             <td>{{ r.HeSoViTri }}</td>
             <td>{{ "{:,.0f}".format(r.LuongTheoViTri).replace(',', '.') }}</td>
+            <td>{{ "{:,.0f}".format(r.DoanhThuDV).replace(',', '.') }}</td>
             <td>{{ "{:,.0f}".format(r.HoaHong).replace(',', '.') }}</td>
             <td><strong>{{ "{:,.0f}".format(r.TongLuong).replace(',', '.') }}</strong></td>
         </tr>
         {% else %}
-        <tr><td colspan="13">Chưa có dữ liệu</td></tr>
+        <tr><td colspan="15">Chưa có dữ liệu</td></tr>
         {% endfor %}
     </tbody>
     {% if ds %}
     <tfoot>
         <tr>
-            <td colspan="13"><strong>Tổng quỹ lương</strong></td>
+            <td colspan="14"><strong>Tổng quỹ lương</strong></td>
             <td><strong>{{ "{:,.0f}".format(tong).replace(',', '.') }}</strong></td>
         </tr>
     </tfoot>

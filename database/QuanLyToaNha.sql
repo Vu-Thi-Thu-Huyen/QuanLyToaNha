@@ -1,9 +1,18 @@
 /* QUAN LY TOA NHA VAN PHONG */
 /* Yeu cau: MySQL 8.0.16 tro len */
-/* Gop tu phan cua Nguoi 1 (Chien), Nguoi 2 (Diep Anh), Nguoi 3 (Thuy), Nguoi 4 (Quang Anh) */
+/*
+   PHAN CONG THUC HIEN:
+   - Chien (Nguoi 1): CONGTY, quan ly cong ty, tien thue mat bang.
+   - Diep Anh (Nguoi 2): NHANVIEN_CONGTY, THE_RA_VAO, LICHSU_RA_VAO,
+     quan ly nhan vien cong ty va kiem soat ra vao.
+   - Thuy (Nguoi 3): DICHVU, SUDUNGDICHVU, dang ky va tinh tien dich vu.
+   - Quang Anh (Nguoi 4): BAC_LUONG, NHANVIEN_TOANHA, PHANCONG,
+     quan ly nhan vien toa nha va tinh luong.
+   - Cac phan truy van tong hop duoc ghi ro thanh vien phoi hop ben duoi.
+*/
 /* Neu muon tao lai tu dau, bo comment dong DROP DATABASE ben duoi.
    Luu y: lenh nay se xoa toan bo du lieu trong database. */
-/* DROP DATABASE IF EXISTS QuanLyToaNha; */
+DROP DATABASE IF EXISTS QuanLyToaNha;
 CREATE DATABASE IF NOT EXISTS QuanLyToaNha CHARACTER SET utf8mb4;
 USE QuanLyToaNha;
 
@@ -488,7 +497,7 @@ INSERT IGNORE INTO DICHVU (MaDV, TenDV, LoaiDV, DonGia, DonViTinh, BatBuoc) VALU
 INSERT INTO SUDUNGDICHVU (MaCT, MaDV, NgayBatDau, NgayKetThuc)
 SELECT c.MaCT, d.MaDV, '2026-01-01', NULL
 FROM CONGTY c JOIN DICHVU d ON d.BatBuoc = TRUE
-WHERE NOT EXISTS (SELECT 1 FROM SUDUNGDICHVU s WHERE s.MaCT = c.MaCT AND s.MaDV = d.MaDV);
+WHERE c.MaCT <> 'CT011' AND NOT EXISTS (SELECT 1 FROM SUDUNGDICHVU s WHERE s.MaCT = c.MaCT AND s.MaDV = d.MaDV);
 
 /* Cong ty tu 10 nhan vien tro len: them An uong, Trong giu xe */
 INSERT INTO SUDUNGDICHVU (MaCT, MaDV, NgayBatDau, NgayKetThuc)
@@ -531,7 +540,7 @@ INSERT IGNORE INTO NHANVIEN_CONGTY
 INSERT INTO THE_RA_VAO (MaThe, MaNV, NgayCap, NgayHetHan, TrangThai)
 SELECT CONCAT('THE', SUBSTRING(nv.MaNV, 3)), nv.MaNV, '2026-01-01', '2027-01-01', 'HOAT_DONG'
 FROM NHANVIEN_CONGTY nv
-WHERE NOT EXISTS (SELECT 1 FROM THE_RA_VAO t WHERE t.MaNV = nv.MaNV);
+WHERE nv.MaNV <> 'NV11' AND NOT EXISTS (SELECT 1 FROM THE_RA_VAO t WHERE t.MaNV = nv.MaNV);
 
 /* ---------- LICHSU_RA_VAO (chi chen khi bang con rong, tranh nhan doi khi chay lai) ---------- */
 INSERT INTO LICHSU_RA_VAO (MaThe, ThoiGian, ViTri, HanhDong)
@@ -617,35 +626,24 @@ INSERT IGNORE INTO PHANCONG (MaNV, MaDV, ViTri, Bac, Thang, Nam, HeSoViTri, SoNg
 ('NVT10', 'DV04', 'Bảo vệ cổng chính',          2, 11, 2026, 1.00, 26);
 
 
+/* ===================================================================== */
+/* DU LIEU DEMO CHO CAC VIEW KIEM TRA RANG BUOC */
+/* ===================================================================== */
+
 -- 1) Công ty mới chỉ đăng ký "Vệ sinh", chưa đăng ký "Bảo vệ" (bắt buộc)
 INSERT IGNORE INTO CONGTY
 (MaCT, TenCT, MaSoThue, VonDieuLe, LinhVuc, SoNhanVien, DiaChi, SoDienThoai, DienTichThue, DonGiaThue) VALUES
 ('CT011', 'Công ty TNHH Nội thất Gia Phát', '0101234572', 1200000000, 'Nội thất', 8,
  'Tầng 3, phòng 308', '0241234512', 70, 270000);
 
-INSERT IGNORE INTO SUDUNGDICHVU (MaCT, MaDV, NgayBatDau, NgayKetThuc)
-VALUES ('CT011', 'DV01', '2026-11-01', NULL);
+INSERT INTO SUDUNGDICHVU (MaCT, MaDV, NgayBatDau, NgayKetThuc)
+SELECT 'CT011', 'DV01', '2026-11-01', NULL FROM DUAL
+WHERE NOT EXISTS (SELECT 1 FROM SUDUNGDICHVU WHERE MaCT = 'CT011' AND MaDV = 'DV01');
 
 -- 2) Nhân viên chưa được cấp thẻ ra vào
 INSERT IGNORE INTO NHANVIEN_CONGTY
 (MaNV, MaCT, HoTen, CCCD, NgaySinh, GioiTinh, SoDienThoai, ChucVu) VALUES
 ('NV11', 'CT001', 'Nguyễn Văn Phúc', '002200000032', '1997-06-15', 'Nam', '0911000032', 'Nhân viên');
-
-INSERT INTO THE_RA_VAO (MaThe, MaNV, NgayCap, NgayHetHan, TrangThai)
-SELECT CONCAT('THE', SUBSTRING(nv.MaNV, 3)), nv.MaNV, '2026-01-01', '2027-01-01', 'HOAT_DONG'
-FROM NHANVIEN_CONGTY nv
-WHERE nv.MaNV <> 'NV11'
-  AND NOT EXISTS (SELECT 1 FROM THE_RA_VAO t WHERE t.MaNV = nv.MaNV);
-
-INSERT INTO SUDUNGDICHVU (MaCT, MaDV, NgayBatDau, NgayKetThuc)
-SELECT c.MaCT, d.MaDV, '2026-01-01', NULL
-FROM CONGTY c JOIN DICHVU d ON d.BatBuoc = TRUE
-WHERE c.MaCT <> 'CT011'
-  AND NOT EXISTS (SELECT 1 FROM SUDUNGDICHVU s WHERE s.MaCT = c.MaCT AND s.MaDV = d.MaDV);
-
-INSERT INTO SUDUNGDICHVU (MaCT, MaDV, NgayBatDau, NgayKetThuc)
-SELECT 'CT011', 'DV01', '2026-11-01', NULL
-WHERE NOT EXISTS (SELECT 1 FROM SUDUNGDICHVU WHERE MaCT = 'CT011' AND MaDV = 'DV01');
 
 /* ===================================================================== */
 /* PHAN 6. CAC CAU KIEM TRA (bo comment de thu) */
