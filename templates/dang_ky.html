@@ -1,0 +1,202 @@
+{% extends "base.html" %}
+
+{% block title %}Đăng ký phân công{% endblock %}
+{% block page_heading %}Nhân viên tòa nhà{% endblock %}
+{% block page_sub %}Chọn dịch vụ trước, vị trí sẽ hiện theo dịch vụ đó{% endblock %}
+
+{% block content %}
+{% include 'luong_tabs.html' %}
+
+<style>
+    .dk-grid { display:grid; grid-template-columns:1fr 1fr; gap:20px; align-items:start; }gap:20px; align-items:start; }
+    @media (max-width: 900px) { .dk-grid { grid-template-columns:1fr; } }
+    .dk-card { border:2px solid #517563; border-radius:12px; background:#f3f7f4; overflow:hidden; margin-bottom:20px; }
+    .dk-card h3 { margin:0; padding:10px 16px; background:#517563; color:#fff; font-size:16px; }
+    .dk-body { padding:16px; }
+    .dk-form { display:grid; gap:12px; }
+    .dk-form label { display:grid; gap:4px; font-weight:600; font-size:14px; }
+    .dv-block { margin-bottom:12px; }
+    .dv-block strong { color:#517563; }
+    .chip { display:inline-block; margin:4px 6px 0 0; padding:4px 10px; border-radius:999px;
+            background:#fff; border:1px solid #b7cbbf; font-size:13px; }
+    .chip small { color:#666; }
+</style>
+
+<div class="dk-grid">
+
+    <!-- Mục 1: Form đăng ký -->
+    <div class="dk-card">
+        <h3>1. Đăng ký phân công</h3>
+        <div class="dk-body">
+            <form method="post" class="dk-form form-modern" autocomplete="off">
+
+                <label>Họ tên nhân viên
+                    <input type="text" name="ho_ten" autocomplete="off"
+                        value="{{ form.get('ho_ten', '') }}" placeholder="Nhập họ tên..." required>
+                </label>
+
+                <label>CCCD
+                    <input type="text" name="cccd" maxlength="12" pattern="[0-9]{12}"
+                        inputmode="numeric" title="CCCD gồm đúng 12 chữ số"
+                        value="{{ form.get('cccd', '') }}" required>
+                </label>
+
+                <label>Giới tính
+                    <select name="gioi_tinh" required>
+                        <option value="Nam" {{ 'selected' if form.get('gioi_tinh') == 'Nam' }}>Nam</option>
+                        <option value="Nu" {{ 'selected' if form.get('gioi_tinh') == 'Nu' }}>Nữ</option>
+                    </select>
+                </label>
+
+                <label>Ngày sinh
+                    <input type="date" name="ngay_sinh" value="{{ form.get('ngay_sinh', '') }}" required>
+                </label>
+
+                <label>Địa chỉ
+                    <input type="text" name="dia_chi" value="{{ form.get('dia_chi', '') }}" required>
+                </label>
+
+                <label>Số điện thoại
+                    <input type="text" name="so_dien_thoai" maxlength="10" pattern="0[0-9]{9}"
+                        inputmode="numeric" title="10 chữ số, bắt đầu bằng 0"
+                        value="{{ form.get('so_dien_thoai', '') }}" required>
+                </label>
+
+                <label>Dịch vụ
+                    <select name="ma_dv" id="ma_dv">
+                        <option value="">Không thuộc dịch vụ (hành chính)</option>
+                        {% for d in dich_vu %}
+                        <option value="{{ d.MaDV }}" {{ 'selected' if form.get('ma_dv') == d.MaDV }}>
+                            {{ d.TenDV }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </label>
+
+                <label>Vị trí
+                    <select name="ma_vi_tri" id="ma_vi_tri" required></select>
+                </label>
+
+                <label>Hệ số vị trí
+                    <input type="text" id="he_so" readonly placeholder="Tự điền theo vị trí">
+                </label>
+
+                <label>Bậc
+                    <select name="bac" required>
+                        {% for b in bac_luong %}
+                        <option value="{{ b.Bac }}" {{ 'selected' if form.get('bac')|string == b.Bac|string }}>
+                            Bậc {{ b.Bac }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </label>
+
+                <label>Ngày bắt đầu làm việc
+                    <input type="date" name="ngay_bat_dau"
+                        value="{{ form.get('ngay_bat_dau', hom_nay.isoformat()) }}" required>
+                </label>
+
+                <small style="color:#666;">
+                    Tháng/năm lấy theo ngày bắt đầu; ngày công tính đến hết tháng (bỏ Chủ nhật).
+                </small>
+
+                <button type="submit">Đăng ký</button>
+            </form>
+        </div>
+    </div>
+
+    <div>
+        <!-- Mục 2: Bậc lương -->
+        <div class="dk-card">
+            <h3>2. Bậc lương</h3>
+            <div class="dk-body">
+                <table class="data-table">
+                    <thead>
+                        <tr><th>Bậc</th><th>Lương cơ bản</th><th>Tỷ lệ hoa hồng</th></tr>
+                    </thead>
+                    <tbody>
+                        {% for b in bac_luong %}
+                        <tr>
+                            <td>{{ b.Bac }}</td>
+                            <td>{{ "{:,.0f}".format(b.LuongCoBan).replace(',', '.') }}</td>
+                            <td>{{ b.TyLeHoaHong }}</td>
+                        </tr>
+                        {% else %}
+                        <tr><td colspan="3">Chưa có dữ liệu</td></tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Mục 3: Dịch vụ và vị trí -->
+        <div class="dk-card">
+            <h3>3. Dịch vụ và các vị trí</h3>
+            <div class="dk-body">
+                <small style="color:#666; display:block; margin-bottom:10px;">
+                    Số người tính theo tháng {{ hom_nay.month }}/{{ hom_nay.year }}
+                </small>
+
+                {% for d in dich_vu %}
+                <div class="dv-block">
+                    <div class="dv-head">
+                        <strong>{{ d.TenDV }}</strong>
+                        <span class="dv-count">{{ so_nguoi.get(d.MaDV, 0) }} người</span>
+                    </div>
+                    <div>
+                        {% for v in vi_tri | selectattr('MaDV', 'equalto', d.MaDV) %}
+                        <span class="chip">{{ v.TenViTri }} <small>x{{ '%.2f'|format(v.HeSo) }}</small></span>
+                        {% else %}
+                        <span class="chip">Chưa có vị trí</span>
+                        {% endfor %}
+                    </div>
+                </div>
+                {% endfor %}
+
+                <div class="dv-block">
+                    <div class="dv-head">
+                        <strong>Hành chính (không thuộc dịch vụ)</strong>
+                        <span class="dv-count">{{ so_nguoi.get(none, 0) }} người</span>
+                    </div>
+                    <div>
+                        {% for v in vi_tri | selectattr('MaDV', 'none') %}
+                        <span class="chip">{{ v.TenViTri }} <small>x{{ '%.2f'|format(v.HeSo) }}</small></span>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<script>
+    const viTri = {{ vi_tri | tojson }};
+    const selDV = document.getElementById('ma_dv');
+    const selVT = document.getElementById('ma_vi_tri');
+    const heSo  = document.getElementById('he_so');
+    const chon  = {{ form.get('ma_vi_tri', '') | tojson }};
+
+    function capNhatViTri() {
+        const dv = selDV.value || null;
+        selVT.innerHTML = '<option value="">-- Chọn vị trí --</option>';
+        viTri.filter(v => v.MaDV === dv).forEach(v => {
+            const o = document.createElement('option');
+            o.value = v.MaViTri;
+            o.textContent = v.TenViTri;
+            if (String(v.MaViTri) === String(chon)) o.selected = true;
+            selVT.appendChild(o);
+        });
+        capNhatHeSo();
+    }
+
+    function capNhatHeSo() {
+        const v = viTri.find(x => String(x.MaViTri) === selVT.value);
+        heSo.value = v ? Number(v.HeSo).toFixed(2) : '';
+    }
+
+    selDV.addEventListener('change', capNhatViTri);
+    selVT.addEventListener('change', capNhatHeSo);
+    capNhatViTri();
+</script>
+{% endblock %}

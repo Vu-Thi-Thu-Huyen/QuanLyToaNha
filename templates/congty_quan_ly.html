@@ -1,0 +1,222 @@
+{% extends "base.html" %}
+
+{% block title %}Điều chỉnh công ty{% endblock %}
+{% block page_heading %}Quản lý công ty{% endblock %}
+{% block page_sub %}Bấm Sửa để chỉnh trực tiếp trên dòng{% endblock %}
+
+{% block content %}
+{% include 'congty_tabs.html' %}
+
+<style>
+    /* ===== Thanh tìm kiếm: mỗi phần là một viên thuốc viền xanh đậm ===== */
+    .tim-ct { display:flex; align-items:center; gap:10px; flex-wrap:wrap; margin-bottom:16px; }
+    .tim-ct .o-tim {
+        width:320px; max-width:100%; box-sizing:border-box;
+        padding:6px 16px; font-size:14px; font-family:inherit; color:#2b3a33;
+        background:#fff; border:2px solid #517563; border-radius:999px; outline:none;
+        transition:box-shadow .2s;
+    }
+    .tim-ct .o-tim::placeholder { color:#9aa8a0; }
+    .tim-ct .o-tim:focus { box-shadow:0 0 0 4px rgba(81,117,99,.15); }
+    .tim-ct .nut-tim {
+        padding:6px 20px; font-size:14px; font-weight:600; font-family:inherit;
+        color:#517563; background:#fff; border:2px solid #517563; border-radius:999px;
+        cursor:pointer; transition:background .2s, color .2s;
+    }
+    .tim-ct .nut-tim:hover { background:#517563; color:#fff; }
+        .tim-ct .nut-xoa-loc {
+        display:none;
+        padding:6px 20px; font-size:14px; font-weight:600; font-family:inherit;
+        color:#fff; background:#517563; border:2px solid #517563; border-radius:999px;
+        text-decoration:none; cursor:pointer; transition:background .2s;
+    }
+    .tim-ct .nut-xoa-loc.hien { display:inline-block; }
+    .tim-ct .nut-xoa-loc:hover { background:#416050; border-color:#416050; }
+
+    /* ===== Bảng ===== */
+    .bang-ct th, .bang-ct td { text-align:center; vertical-align:middle; }
+    .bang-ct th { white-space:nowrap; }
+    .bang-ct .ta-trai { text-align:left; }
+    .bang-ct .c-ten { min-width:170px; }
+    .bang-ct .c-phong { min-width:150px; }
+
+    /* ===== Chế độ sửa trên dòng ===== */
+    .bang-ct tr .sua { display:none; }
+    .bang-ct tr.dang-sua .sua { display:inline-block; }
+    .bang-ct tr.dang-sua .xem { display:none; }
+    .bang-ct tr.dang-sua { background:#fffde7; }
+    .bang-ct input.sua, .bang-ct select.sua {
+        width:100%; max-width:170px; box-sizing:border-box;
+        padding:5px 10px; font-size:13.5px; font-family:inherit;
+        border:1.5px solid #bcd5c6; border-radius:10px; background:#fff; outline:none;
+    }
+    .bang-ct input.sua:focus, .bang-ct select.sua:focus {
+        border-color:#517563; box-shadow:0 0 0 3px rgba(81,117,99,.15);
+    }
+    .bang-ct input.o-nho { max-width:80px; }
+
+    /* ===== Nút thao tác ===== */
+    .bang-ct .btn-nho {
+                padding:4px 13px; font-size:12.5px; font-weight:600; font-family:inherit;
+        border:1px solid transparent; border-radius:999px; cursor:pointer; margin:0 2px;
+        transition:background .2s, transform .1s;
+    }
+    .bang-ct .btn-nho:active { transform:scale(.96); }
+    .bang-ct .btn-sua { background:#dcebe2; color:#2f5a44; border-color:#bcd5c6; }
+    .bang-ct .btn-sua:hover { background:#cde3d6; }
+    .bang-ct .btn-xoa { background:#517563; color:#fff; border-color:#517563; box-shadow:0 2px 6px rgba(81,117,99,.35); }
+    .bang-ct .btn-xoa:hover { background:#416050; }
+    .bang-ct button.luu { background:#517563; color:#fff; }
+    .bang-ct button.luu:hover { background:#416050; }
+    .bang-ct .btn-huy { background:#eef1ef; color:#5f6b64; border-color:#dbe2de; }
+    .bang-ct .btn-huy:hover { background:#e2e7e4; }
+</style>
+
+<form method="get" class="tim-ct">
+    <input type="text" name="q" value="{{ tu_khoa }}"
+           placeholder="Nhập hoặc chọn tên, mã công ty..."
+           list="ds-ten-ct" autocomplete="off" class="o-tim"
+           oninput="document.getElementById('nutXoaLoc').classList.toggle('hien', this.value.trim() !== '')"
+           onchange="document.getElementById('nutXoaLoc').classList.toggle('hien', this.value.trim() !== '')">
+    <datalist id="ds-ten-ct">
+        {% for c in ds %}<option value="{{ c.TenCT }}">{% endfor %}
+    </datalist>
+    <button type="submit" class="nut-tim">Tìm</button>
+    <a class="nut-xoa-loc {% if tu_khoa %}hien{% endif %}" id="nutXoaLoc"
+       href="{{ url_for('congty.quan_ly') }}">Xóa lọc</a>
+</form>
+
+<div class="table-scroll">
+<table class="data-table bang-ct">
+    <thead>
+        <tr>
+            <th>Mã<br>CT</th>
+            <th class="ta-trai c-ten">Tên công ty</th>
+            <th>Mã số<br>thuế</th>
+            <th>Vốn<br>điều lệ</th>
+            <th>Lĩnh vực</th>
+            <th>Số<br>NV</th>
+            <th>Số điện<br>thoại</th>
+            <th class="c-phong">Phòng<br>thuê</th>
+            <th>Diện<br>tích</th>
+            <th>Đơn giá<br>(đ/m²/tháng)</th>
+            <th>Tiền<br>thuê</th>
+            <th>Thao tác</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for c in ds %}
+        {% set fid = 'sua-' ~ loop.index %}
+        <tr data-phong="{{ c.MaPhong or '' }}" data-ma="{{ c.MaCT }}">
+            <td>{{ c.MaCT }}</td>
+
+            <td class="ta-trai">
+                <span class="xem">{{ c.TenCT }}</span>
+                <input class="sua" type="text" name="TenCT" form="{{ fid }}"
+                       value="{{ c.TenCT }}" maxlength="150" required>
+            </td>
+
+            <td>
+                <span class="xem">{{ c.MaSoThue }}</span>
+                <input class="sua" type="text" name="MaSoThue" form="{{ fid }}"
+                       value="{{ c.MaSoThue }}" maxlength="14" required>
+            </td>
+
+            <td>
+                <span class="xem">{{ "{:,.0f}".format(c.VonDieuLe).replace(',', '.') }}</span>
+                <input class="sua" type="number" name="VonDieuLe" form="{{ fid }}"
+                       value="{{ c.VonDieuLe|int }}" min="0" step="1" required>
+            </td>
+
+            <td>
+                <span class="xem">{{ c.LinhVuc }}</span>
+                <input class="sua" type="text" name="LinhVuc" form="{{ fid }}"
+                       value="{{ c.LinhVuc }}" maxlength="100" required>
+            </td>
+
+            <td>
+                <span class="xem">{{ c.SoNhanVien }}</span>
+                <input class="sua o-nho" type="number" name="SoNhanVien" form="{{ fid }}"
+                       value="{{ c.SoNhanVien }}" min="0" step="1" required>
+            </td>
+
+            <td>
+                <span class="xem">{{ c.SoDienThoai }}</span>
+                <input class="sua" type="text" name="SoDienThoai" form="{{ fid }}"
+                       value="{{ c.SoDienThoai }}" maxlength="15" required>
+            </td>
+
+            <td>
+                <span class="xem">{{ c.MaPhong or 'Chưa có' }}</span>
+                <select class="sua sel-phong" name="MaPhong" form="{{ fid }}" required></select>
+            </td>
+
+            <td class="o-dt">{{ (c.DienTich|int ~ ' m²') if c.DienTich is not none else '' }}</td>
+            <td class="o-dg">{{ "{:,.0f}".format(c.DonGiaThue).replace(',', '.') if c.DonGiaThue is not none else '' }}</td>
+            <td class="o-tt"><strong>{{ "{:,.0f}".format(c.TienThue).replace(',', '.') if c.TienThue is not none else '' }}</strong></td>
+
+            <td style="white-space:nowrap;">
+                <form id="{{ fid }}" method="post"
+                      action="{{ url_for('congty.cap_nhat', ma_ct=c.MaCT, q=tu_khoa) }}"></form>
+
+                <button type="button" class="btn-nho btn-sua xem">Sửa</button>
+                <button type="submit" form="{{ fid }}" class="btn-nho luu sua">Lưu</button>
+                <button type="button" class="btn-nho btn-huy sua">Hủy</button>
+
+                <form method="post" style="display:inline;"
+                      action="{{ url_for('congty.xoa', ma_ct=c.MaCT) }}"
+                      onsubmit="return confirm('Xóa công ty {{ c.TenCT }}?');">
+                    <button type="submit" class="btn-nho btn-xoa xem">Xóa</button>
+                </form>
+            </td>
+        </tr>
+        {% else %}
+        <tr><td colspan="12">Chưa có công ty nào</td></tr>
+        {% endfor %}
+    </tbody>
+</table>
+</div>
+
+<script>
+    const phongs = {{ phongs | tojson }};
+
+    function dinhDang(n) { return Number(n).toLocaleString('de-DE'); }
+
+    document.querySelectorAll('tr[data-ma]').forEach(tr => {
+        const sel = tr.querySelector('.sel-phong');
+        const ma = tr.dataset.ma;
+        const oDT = tr.querySelector('.o-dt');
+        const oDG = tr.querySelector('.o-dg');
+        const oTT = tr.querySelector('.o-tt');
+
+        function doPhong() {
+            sel.innerHTML = '<option value="">-- Chọn phòng --</option>';
+            phongs.filter(p => !p.chu || p.chu === ma).forEach(p => {
+                const o = document.createElement('option');
+                o.value = p.MaPhong;
+                o.textContent = 'Phòng ' + p.MaPhong + ' (Tầng ' + p.Tang + ', ' + p.DienTich + ' m²)';
+                if (p.MaPhong === tr.dataset.phong) o.selected = true;
+                sel.appendChild(o);
+            });
+        }
+
+        function capNhatGia() {
+            const p = phongs.find(x => x.MaPhong === sel.value);
+            oDT.textContent = p ? p.DienTich + ' m²' : '';
+            oDG.textContent = p ? dinhDang(p.DonGia) : '';
+            oTT.textContent = p ? dinhDang(p.TienThue) : '';
+        }
+
+        doPhong();
+        sel.addEventListener('change', capNhatGia);
+
+        tr.querySelector('.btn-sua').addEventListener('click', () => tr.classList.add('dang-sua'));
+        tr.querySelector('.btn-huy').addEventListener('click', () => {
+            tr.querySelectorAll('input.sua').forEach(i => i.value = i.defaultValue);
+            doPhong();
+            capNhatGia();
+            tr.classList.remove('dang-sua');
+        });
+    });
+</script>
+{% endblock %}

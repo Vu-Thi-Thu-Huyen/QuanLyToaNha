@@ -1,0 +1,79 @@
+{% extends "base.html" %}
+
+{% block title %}Danh sách đăng ký dịch vụ{% endblock %}
+{% block page_heading %}Quản lý dịch vụ{% endblock %}
+{% block page_sub %}Theo dõi, kết thúc hoặc xóa các dịch vụ công ty đã đăng ký{% endblock %}
+
+{% block content %}
+{% include '_dichvu_tabs.html' %}
+<form method="get" class="dv-filter">
+    <input type="text" class="f-ct" name="q" list="ds-congty-ql" value="{{ tu_khoa }}"
+           placeholder="Chọn hoặc gõ tên công ty..." autocomplete="off">
+    <datalist id="ds-congty-ql">
+        {% for c in ds_ct %}<option value="{{ c.TenCT }}"></option>{% endfor %}
+    </datalist>
+
+    <select class="f-dv" name="dv" aria-label="Dịch vụ">
+        <option value="">-- Tất cả dịch vụ --</option>
+        {% for d in ds_dv_all %}
+        <option value="{{ d.TenDV }}" {% if d.TenDV == dv %}selected{% endif %}>{{ d.TenDV }}</option>
+        {% endfor %}
+    </select>
+
+    <button type="submit">Tìm</button>
+    {% if request.args %}
+    <a class="f-clear" href="{{ url_for('dichvu.quan_ly') }}">Xóa lọc</a>
+    {% endif %}
+</form>
+
+
+<div class="table-scroll">
+<table class="data-table">
+    <thead>
+        <tr>
+            <th>Công ty</th>
+            <th>Dịch vụ</th>
+            <th>Ngày đăng ký</th>
+            <th>Ngày kết thúc</th>
+            <th>Thao tác</th>
+        </tr>
+    </thead>
+        <tbody>
+        {% for g in dang_ky|groupby('TenCT') %}
+            {% for r in g.list %}
+            <tr class="{{ 'group-start' if loop.first }}">
+                {% if loop.first %}
+                <td rowspan="{{ g.list|length }}" class="merged-cell">{{ r.TenCT }}</td>
+                {% endif %}
+                <td>{{ r.TenDV }} {% if r.BatBuoc %}<span class="badge badge-na">Bắt buộc</span>{% endif %}</td>
+                <td>{{ r.NgayBatDau.strftime('%d/%m/%Y') }}</td>
+                <td>{{ r.NgayKetThuc.strftime('%d/%m/%Y') if r.NgayKetThuc else 'Đang sử dụng' }}</td>
+                <td style="white-space:nowrap;">
+                    {% if r.BatBuoc %}
+                        <span class="badge badge-na">Không thể kết thúc / xóa</span>
+                    {% else %}
+                        {% if not r.NgayKetThuc %}
+                        <form method="post" action="{{ url_for('dichvu.ket_thuc_dang_ky', ma_sd=r.MaSD) }}" class="inline-form">
+                            <input type="hidden" name="q" value="{{ tu_khoa }}">
+                            <input type="hidden" name="dv" value="{{ dv }}">
+                            <input type="date" name="ngay_ket_thuc" value="{{ hom_nay }}" required>
+                            <button type="submit" class="btn btn-sm btn-secondary">Kết thúc</button>
+                        </form>
+                        {% endif %}
+                        <form method="post" action="{{ url_for('dichvu.xoa_dang_ky', ma_sd=r.MaSD) }}" class="inline-form"
+                              onsubmit="return confirm('Xóa đợt đăng ký này?');">
+                            <input type="hidden" name="q" value="{{ tu_khoa }}">
+                            <input type="hidden" name="dv" value="{{ dv }}">
+                            <button type="submit" class="btn btn-sm btn-danger">Xóa</button>
+                        </form>
+                    {% endif %}
+                </td>
+            </tr>
+            {% endfor %}
+        {% else %}
+        <tr><td colspan="5">Chưa có đăng ký nào</td></tr>
+        {% endfor %}
+    </tbody>
+</table>
+</div>
+{% endblock %}

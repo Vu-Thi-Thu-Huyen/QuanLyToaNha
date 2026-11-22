@@ -1,0 +1,107 @@
+{% extends "base.html" %}
+
+{% block title %}{{ 'Sửa công ty' if la_sua else 'Thêm công ty' }}{% endblock %}
+{% block page_heading %}{{ 'Sửa công ty ' ~ ct.MaCT if la_sua else 'Thêm công ty mới' }}{% endblock %}
+{% block page_sub %}Các ô có dấu * là bắt buộc{% endblock %}
+
+{% block content %}
+<div class="form-card">
+<form method="post" novalidate>
+    <div class="form-grid">
+
+        <div class="form-field">
+            <label for="MaCT">Mã công ty *</label>
+            <input id="MaCT" name="MaCT" maxlength="10" value="{{ ct.MaCT or '' }}"
+                   {% if la_sua %}readonly{% else %}required placeholder="VD: CT012"{% endif %}>
+            {% if la_sua %}<small>Mã công ty là khóa chính nên không thể sửa.</small>{% endif %}
+        </div>
+
+        <div class="form-field">
+            <label for="MaSoThue">Mã số thuế *</label>
+            <input id="MaSoThue" name="MaSoThue" maxlength="14" value="{{ ct.MaSoThue or '' }}"
+                   required placeholder="10 hoặc 13 chữ số">
+        </div>
+
+        <div class="form-field full">
+            <label for="TenCT">Tên công ty *</label>
+            <input id="TenCT" name="TenCT" maxlength="150" value="{{ ct.TenCT or '' }}" required>
+        </div>
+
+        <div class="form-field">
+            <label for="LinhVuc">Lĩnh vực hoạt động *</label>
+            <input id="LinhVuc" name="LinhVuc" maxlength="100" value="{{ ct.LinhVuc or '' }}" required>
+        </div>
+
+        <div class="form-field">
+            <label for="VonDieuLe">Vốn điều lệ (đồng) *</label>
+            <input id="VonDieuLe" name="VonDieuLe" type="number" min="0" step="1"
+                   value="{{ ct.VonDieuLe if ct.VonDieuLe is not none else '' }}" required>
+        </div>
+
+        <div class="form-field">
+            <label for="SoNhanVien">Số nhân viên *</label>
+            <input id="SoNhanVien" name="SoNhanVien" type="number" min="0" step="1"
+                   value="{{ ct.SoNhanVien if ct.SoNhanVien is not none else '' }}" required>
+            {% if la_sua %}<small>Không được nhỏ hơn số nhân viên đang có của công ty.</small>{% endif %}
+        </div>
+
+        <div class="form-field">
+            <label for="SoDienThoai">Số điện thoại *</label>
+            <input id="SoDienThoai" name="SoDienThoai" maxlength="15" value="{{ ct.SoDienThoai or '' }}" required>
+        </div>
+
+        <div class="form-field full">
+            <label for="MaPhong">Phòng thuê *</label>
+            <select id="MaPhong" name="MaPhong" required style="width:100%;">
+                <option value="">-- Chọn phòng --</option>
+                {% for p in phong_chon %}
+                <option value="{{ p.MaPhong }}"
+                        data-dt="{{ p.DienTich|int }}"
+                        data-dg="{{ p.DonGiaThue|int }}"
+                        {{ 'selected' if ct.MaPhong == p.MaPhong }}>
+                    Phòng {{ p.MaPhong }} (Tầng {{ p.Tang }}, {{ p.DienTich|int }} m²)
+                </option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <div class="form-field">
+            <label for="DonGiaHienThi">Đơn giá (đ/m²/tháng)</label>
+            <input id="DonGiaHienThi" type="text" readonly placeholder="Tự điền theo phòng">
+        </div>
+
+        <div class="form-field">
+            <label for="TienThueHienThi">Tiền thuê (đ/tháng)</label>
+            <input id="TienThueHienThi" type="text" readonly placeholder="Diện tích × đơn giá">
+        </div>
+    </div>
+
+    <div class="form-actions">
+        <button type="submit" class="btn">{{ 'Lưu thay đổi' if la_sua else 'Thêm công ty' }}</button>
+        <a href="{{ url_for('congty.danh_sach') }}" class="btn btn-secondary">Hủy</a>
+    </div>
+</form>
+</div>
+<script>
+    const selPhong = document.getElementById('MaPhong');
+
+    function dinhDang(n) { return Number(n).toLocaleString('de-DE'); }
+
+    function dat(id, giaTri) {
+        const el = document.getElementById(id);
+        if (el) el.value = giaTri;
+    }
+
+    function capNhatPhong() {
+        const o = selPhong.selectedOptions[0];
+        const dt = o && o.dataset.dt ? Number(o.dataset.dt) : null;
+        const dg = o && o.dataset.dg ? Number(o.dataset.dg) : null;
+
+        dat('DonGiaHienThi',   dg !== null ? dinhDang(dg) : '');
+        dat('TienThueHienThi', dt !== null && dg !== null ? dinhDang(dt * dg) : '');
+    }
+
+    selPhong.addEventListener('change', capNhatPhong);
+    capNhatPhong();
+</script>
+{% endblock %}

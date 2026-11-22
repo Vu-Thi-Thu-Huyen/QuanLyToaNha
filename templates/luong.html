@@ -1,47 +1,36 @@
 {% extends "base.html" %}
 
 {% block title %}Bảng lương{% endblock %}
-{% block page_heading %}Bảng lương nhân viên tòa nhà{% endblock %}
+{% block page_heading %} Nhân viên tòa nhà{% endblock %}
 {% block page_sub %}Lương theo vị trí cộng hoa hồng dịch vụ phụ trách{% endblock %}
 
 {% block content %}
+{% include 'luong_tabs.html' %}
 
-
-<form method="get" style="margin-bottom:16px; display:flex; gap:10px; align-items:center; flex-wrap:wrap;">
-
-    <input
-        type="text"
-        name="q"
-        value="{{ tu_khoa }}"
-        list="danh-sach-nhan-vien"
-        placeholder="Nhập hoặc chọn tên, mã nhân viên..."
-        autocomplete="off"
-        style="width:320px;"
-    >
-
+<form method="get" class="tim-ct">
+    <input type="text" name="q" value="{{ tu_khoa }}"
+           placeholder="Nhập hoặc chọn tên, mã nhân viên..."
+           list="danh-sach-nhan-vien" autocomplete="off" class="o-tim"
+           oninput="document.getElementById('nutXoaLoc').classList.toggle('hien', this.value.trim() !== '')"
+           onchange="document.getElementById('nutXoaLoc').classList.toggle('hien', this.value.trim() !== '')">
     <datalist id="danh-sach-nhan-vien">
-        {% for ten in ten_nhan_vien %}
-            <option value="{{ ten }}">
-        {% endfor %}
+        {% for ten in ten_nhan_vien %}<option value="{{ ten }}">{% endfor %}
     </datalist>
 
-    <input type="number" name="thang" value="{{ thang }}" min="1" max="12" style="width:80px;">
-    <input type="number" name="nam" value="{{ nam }}" min="2000" style="width:100px;">
+    <input type="number" name="thang" value="{{ thang }}" min="1" max="12" class="o-so" title="Tháng">
+    <input type="number" name="nam" value="{{ nam }}" min="2000" class="o-so o-nam" title="Năm">
 
-    <button type="submit">Tìm</button>
-
-    {% if tu_khoa %}
-        <a href="{{ url_for('luong.bang_luong', thang=thang, nam=nam) }}">Xóa lọc</a>
-    {% endif %}
-
+    <button type="submit" class="nut-tim">Tìm</button>
+    <a class="nut-xoa-loc {% if tu_khoa %}hien{% endif %}" id="nutXoaLoc"
+       href="{{ url_for('luong.bang_luong', thang=thang, nam=nam) }}">Xóa lọc</a>
 </form>
-
 
 <table class="data-table">
     <thead>
         <tr>
             <th>Mã NV</th>
             <th>Họ tên</th>
+            <th>CCCD</th>
             <th>Giới tính</th>
             <th>Ngày sinh</th>
             <th>Địa chỉ</th>
@@ -62,6 +51,7 @@
         <tr>
             <td>{{ r.MaNV }}</td>
             <td>{{ r.HoTen }}</td>
+            <td>{{ r.CCCD }}</td>
             <td>{{ 'Nữ' if r.GioiTinh == 'Nu' else (r.GioiTinh or '') }}</td>
             <td>{{ r.NgaySinh.strftime('%d/%m/%Y') if r.NgaySinh else '' }}</td>
             <td>{{ r.DiaChi }}</td>
@@ -77,13 +67,13 @@
             <td><strong>{{ "{:,.0f}".format(r.TongLuong).replace(',', '.') }}</strong></td>
         </tr>
         {% else %}
-        <tr><td colspan="15">Chưa có dữ liệu</td></tr>
+        <tr><td colspan="16">Chưa có dữ liệu</td></tr>
         {% endfor %}
     </tbody>
     {% if ds %}
     <tfoot>
         <tr>
-            <td colspan="14"><strong>Tổng quỹ lương</strong></td>
+            <td colspan="15"><strong>Tổng quỹ lương</strong></td>
             <td><strong>{{ "{:,.0f}".format(tong).replace(',', '.') }}</strong></td>
         </tr>
     </tfoot>

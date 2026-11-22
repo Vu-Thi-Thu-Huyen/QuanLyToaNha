@@ -1,23 +1,38 @@
 {% extends "base.html" %}
 
 {% block title %}Ra vào theo ngày{% endblock %}
-{% block page_heading %}Ra vào theo ngày{% endblock %}
+{% block page_heading %}Ra vào tòa nhà{% endblock %}
 {% block page_sub %}Số lần và vị trí ra/vào của nhân viên công ty trong ngày chọn{% endblock %}
 
 {% block content %}
-<form method="get" style="margin-bottom:16px;">
-    <label for="ngay">Chọn ngày:</label>
-    <input type="date" id="ngay" name="ngay" value="{{ ngay }}">
-    <input type="text" name="q" value="{{ tu_khoa }}" placeholder="Tìm theo mã hoặc họ tên nhân viên...">
+{% include '_ravao_tabs.html' %}
+
+<form method="get" action="{{ url_for('ravao.theo_ngay') }}" class="dv-filter">
+    <input type="date" name="ngay" value="{{ ngay }}" aria-label="Ngày">
+    <input type="text" class="f-ct" name="q" value="{{ tu_khoa }}"
+           placeholder="Tìm theo mã thẻ, mã hoặc họ tên nhân viên..." autocomplete="off">
+    <select class="f-dv" name="ct" aria-label="Công ty">
+        <option value="">-- Tất cả công ty --</option>
+        {% for c in ds_ct %}
+        <option value="{{ c }}" {% if c == ct %}selected{% endif %}>{{ c }}</option>
+        {% endfor %}
+    </select>
+    <select class="f-dv" name="vt" aria-label="Vị trí">
+        <option value="">-- Tất cả vị trí --</option>
+        {% for v in ds_vitri %}
+        <option value="{{ v }}" {% if v == vt %}selected{% endif %}>{{ nhan_vi_tri.get(v, v) }}</option>
+        {% endfor %}
+    </select>
     <button type="submit">Xem</button>
-    {% if tu_khoa %}
-    <a href="{{ url_for('ravao.theo_ngay', ngay=ngay) }}">Xóa lọc</a>
+    {% if tu_khoa or ct or vt %}
+    <a class="f-clear" href="{{ url_for('ravao.theo_ngay', ngay=ngay) }}">Xóa lọc</a>
     {% endif %}
 </form>
 
 <table class="data-table">
     <thead>
         <tr>
+            <th>Mã thẻ</th>
             <th>Mã NV</th>
             <th>Họ tên</th>
             <th>CMT/CCCD</th>
@@ -33,19 +48,20 @@
     <tbody>
         {% for r in ds %}
         <tr>
+            <td>{{ r.MaThe or 'Chưa có thẻ' }}</td>
             <td>{{ r.MaNV }}</td>
             <td>{{ r.HoTen }}</td>
             <td>{{ r.CCCD }}</td>
             <td>{{ r.NgaySinh.strftime('%d/%m/%Y') if r.NgaySinh else '' }}</td>
             <td>{{ r.SoDienThoai }}</td>
             <td>{{ r.TenCT }}</td>
-            <td>{{ r.ViTri }}</td>
+            <td>{{ nhan_vi_tri.get(r.ViTri, r.ViTri) }}</td>
             <td>{{ r.SoLanVao }}</td>
             <td>{{ r.SoLanRa }}</td>
             <td><strong>{{ r.TongSoLan }}</strong></td>
         </tr>
         {% else %}
-        <tr><td colspan="10">Chưa có dữ liệu</td></tr>
+        <tr><td colspan="11">Chưa có dữ liệu</td></tr>
         {% endfor %}
     </tbody>
 </table>

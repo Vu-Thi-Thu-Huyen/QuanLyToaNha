@@ -1,0 +1,78 @@
+{% extends "base.html" %}
+
+{% block title %}Ghi nhận ra vào{% endblock %}
+{% block page_heading %}Ra vào tòa nhà{% endblock %}
+{% block page_sub %}Ghi nhận lượt vào/ra của nhân viên công ty qua thẻ{% endblock %}
+
+{% block content %}
+{% include '_ravao_tabs.html' %}
+
+<div class="dv-grid">
+    <div class="dv-card">
+        <h2 class="dv-card-head">1. Ghi nhận lượt mới</h2>
+        <div class="dv-card-body">
+            <form method="post" action="{{ url_for('ravao.them_luot') }}">
+                <div class="form-field">
+                    <label for="ma_the">Thẻ (đang hoạt động)</label>
+                    <select id="ma_the" name="ma_the" required>
+                        <option value="">-- Chọn thẻ --</option>
+                        {% for t in ds_the %}
+                        <option value="{{ t.MaThe }}">{{ t.MaThe }} - {{ t.HoTen }} ({{ t.TenCT }})</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="form-field">
+                    <label for="vi_tri">Vị trí</label>
+                    <select id="vi_tri" name="vi_tri" required>
+                        {% for v in vi_tri %}
+                        <option value="{{ v }}">{{ nhan_vi_tri.get(v, v) }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="form-field">
+                    <label for="chieu">Chiều</label>
+                    <select id="chieu" name="chieu" required>
+                        <option value="VAO">Vào</option>
+                        <option value="RA">Ra</option>
+                    </select>
+                </div>
+
+                <div class="form-field">
+                    <label for="thoi_gian">Thời gian</label>
+                    <input type="datetime-local" id="thoi_gian" name="thoi_gian"
+                           value="{{ bay_gio }}" required>
+                </div>
+
+                <button type="submit" class="btn">Ghi nhận</button>
+            </form>
+        </div>
+    </div>
+
+    <div class="dv-card">
+        <h2 class="dv-card-head">2. 10 lượt gần đây</h2>
+        <div class="dv-card-body">
+            <div class="table-scroll">
+            <table class="data-table">
+                <thead>
+                    <tr><th>Thời gian</th><th>Nhân viên</th><th>Vị trí</th><th>Chiều</th></tr>
+                </thead>
+                <tbody>
+                {% for l in gan_day %}
+                    <tr>
+                        <td>{{ l.ThoiGian.strftime('%d/%m/%Y %H:%M') }}</td>
+                        <td>{{ l.HoTen }}</td>
+                        <td>{{ nhan_vi_tri.get(l.ViTri, l.ViTri) }}</td>
+                        <td>{{ 'Vào' if l.Chieu == 'VAO' else 'Ra' }}</td>
+                    </tr>
+                {% else %}
+                    <tr><td colspan="4">Chưa có lượt ra/vào nào</td></tr>
+                {% endfor %}
+                </tbody>
+            </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

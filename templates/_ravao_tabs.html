@@ -1,0 +1,7 @@
+{% include '_tabs_css.html' %}
+{% set ep = request.endpoint %}
+<nav class="dv-tabs">
+    <a href="{{ url_for('ravao.theo_ngay') }}" class="dv-tab {{ 'on' if ep == 'ravao.theo_ngay' }}">1. Lượt ra vào</a>
+    <a href="{{ url_for('ravao.cap_the') }}" class="dv-tab {{ 'on' if ep == 'ravao.cap_the' }}">2. Cấp thẻ</a>
+    <a href="{{ url_for('ravao.ghi_nhan') }}" class="dv-tab {{ 'on' if ep == 'ravao.ghi_nhan' }}">3. Ghi nhận ra vào</a>
+</nav>

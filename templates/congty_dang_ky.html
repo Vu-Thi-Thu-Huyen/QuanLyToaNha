@@ -1,0 +1,224 @@
+{% extends "base.html" %}
+
+{% block title %}Đăng ký công ty{% endblock %}
+{% block page_heading %}Quản lý công ty{% endblock %}
+{% block page_sub %}Đăng ký công ty mới thuê văn phòng. Các ô có dấu * là bắt buộc{% endblock %}
+
+{% block content %}
+{% include 'congty_tabs.html' %}
+
+<style>
+/* ---- Bố cục 3 ô ---- */
+.ct-layout {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+  align-items: start;
+}
+.ct-phai { display: grid; gap: 20px; }
+@media (max-width: 1000px) { .ct-layout { grid-template-columns: 1fr; } }
+
+.ct-card {
+  border: 2px solid #4f7762;
+  border-radius: 14px;
+  overflow: hidden;
+  background: #f1f6f3;
+}
+.ct-card h3 {
+  margin: 0;
+  background: #4f7762;
+  color: #fff;
+  font-size: 15px;
+  font-weight: 700;
+  padding: 9px 18px;
+}
+.ct-body { padding: 12px 16px; }
+
+/* ---- Ô 2: bảng đơn giá ---- */
+.bang-gia { width: 100%; border-collapse: collapse; font-size: 14px; }
+.bang-gia th, .bang-gia td { padding: 7px 10px; text-align: center; border-bottom: 1px solid #dbe6df; }
+.bang-gia th { color: #4f7762; background: #e6ede8; }
+.bang-gia tr:last-child td { border-bottom: none; }
+
+/* ---- Ô 3: tầng và phòng ---- */
+.tang-hang { display: flex; align-items: center; gap: 12px; padding: 6px 0; border-bottom: 1px dashed #cfdcd3; }
+.tang-hang:last-of-type { border-bottom: none; }
+.tang-ten { width: 62px; flex-shrink: 0; font-weight: 600; font-size: 13px; color: #4f7762; }
+.tang-phong { flex: 1; display: grid; grid-template-columns: repeat(6, 1fr); gap: 6px; }
+.phong {
+  text-align: center; padding: 5px 0; font-size: 13px;
+  border-radius: 8px; background: #fff; color: #2f4a3a; border: 1px solid #cfdcd3;
+}
+.phong.thue { background: #4f7762; color: #fff; border-color: #4f7762; }
+.chu-giai { display: flex; gap: 8px; margin-top: 10px; }
+.chu-giai .phong { padding: 4px 14px; }
+
+/* ---- Ô 1: form đăng ký (giữ nguyên) ---- */
+.dk-head { background: #4f7762; color: #fff; font-size: 15px; font-weight: 700; padding: 9px 18px; }
+.dk-body { padding: 10px 18px 16px; }
+.dk-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px 16px; }
+.dk-field.full { grid-column: 1 / -1; }
+.dk-field label { display: block; margin-bottom: 3px; font-size: 13px; font-weight: 600; color: #2f4a3a; }
+.dk-field input, .dk-field select {
+  width: 100%; height: 32px; padding: 0 12px;
+  border: 1.5px solid #cfdcd3; border-radius: 10px; background: #fff;
+  color: #2f4a3a; font-size: 13px; font-family: inherit; outline: none; box-sizing: border-box;
+}
+.dk-field input:focus, .dk-field select:focus { border-color: #4f7762; box-shadow: 0 0 0 3px rgba(79, 119, 98, 0.2); }
+.dk-submit {
+  margin-top: 14px; height: 34px; padding: 0 24px; border: none; border-radius: 10px;
+  background: #4f7762; color: #fff; font-size: 13px; font-weight: 600; font-family: inherit; cursor: pointer;
+}
+.dk-submit:hover { background: #3f6350; }
+</style>
+
+<div class="ct-layout">
+
+    <!-- Ô 1: Đăng ký -->
+    <div class="ct-card">
+        <div class="dk-head">Đăng ký công ty</div>
+        <form method="post" novalidate class="dk-body">
+            <div class="dk-grid">
+
+                <div class="dk-field">
+                    <label for="MaCT">Mã công ty *</label>
+                    <input id="MaCT" name="MaCT" maxlength="10" value="{{ ct.MaCT or '' }}"
+                           required placeholder="VD: CT012">
+                </div>
+
+                <div class="dk-field">
+                    <label for="MaSoThue">Mã số thuế *</label>
+                    <input id="MaSoThue" name="MaSoThue" maxlength="14" value="{{ ct.MaSoThue or '' }}"
+                           required placeholder="10 hoặc 13 chữ số">
+                </div>
+
+                <div class="dk-field full">
+                    <label for="TenCT">Tên công ty *</label>
+                    <input id="TenCT" name="TenCT" maxlength="150" value="{{ ct.TenCT or '' }}" required>
+                </div>
+
+                <div class="dk-field">
+                    <label for="LinhVuc">Lĩnh vực hoạt động *</label>
+                    <input id="LinhVuc" name="LinhVuc" maxlength="100" value="{{ ct.LinhVuc or '' }}" required>
+                </div>
+
+                <div class="dk-field">
+                    <label for="VonDieuLe">Vốn điều lệ (đồng) *</label>
+                    <input id="VonDieuLe" name="VonDieuLe" type="number" min="0" step="1"
+                           value="{{ ct.VonDieuLe if ct.VonDieuLe is not none else '' }}" required>
+                </div>
+
+                <div class="dk-field">
+                    <label for="SoNhanVien">Số nhân viên *</label>
+                    <input id="SoNhanVien" name="SoNhanVien" type="number" min="0" step="1"
+                           value="{{ ct.SoNhanVien if ct.SoNhanVien is not none else '' }}" required>
+                </div>
+
+                <div class="dk-field">
+                    <label for="SoDienThoai">Số điện thoại *</label>
+                    <input id="SoDienThoai" name="SoDienThoai" maxlength="15" value="{{ ct.SoDienThoai or '' }}" required>
+                </div>
+
+                <div class="dk-field full">
+                    <label for="MaPhong">Phòng thuê *</label>
+                    <select id="MaPhong" name="MaPhong" required>
+                        <option value="">-- Chọn phòng trống --</option>
+                        {% for p in phong_chon %}
+                        <option value="{{ p.MaPhong }}"
+                                data-dt="{{ p.DienTich|int }}"
+                                data-dg="{{ p.DonGiaThue|int }}"
+                                {{ 'selected' if ct.MaPhong == p.MaPhong }}>
+                            Phòng {{ p.MaPhong }} (Tầng {{ p.Tang }}, {{ p.DienTich|int }} m²)
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="dk-field">
+                    <label for="DonGiaHienThi">Đơn giá (đ/m²/tháng)</label>
+                    <input id="DonGiaHienThi" type="text" readonly placeholder="Tự điền theo phòng">
+                </div>
+
+                <div class="dk-field">
+                    <label for="TienThueHienThi">Tiền thuê (đ/tháng)</label>
+                    <input id="TienThueHienThi" type="text" readonly placeholder="Diện tích × đơn giá">
+                </div>
+            </div>
+
+            <button type="submit" class="dk-submit">Đăng ký</button>
+        </form>
+    </div>
+
+    <div class="ct-phai">
+
+        <!-- Ô 2: Đơn giá thuê -->
+        <div class="ct-card">
+            <h3>Đơn giá thuê theo phòng</h3>
+            <div class="ct-body">
+                <table class="bang-gia">
+                    <thead>
+                        <tr><th>Phòng</th><th>Diện tích</th><th>Đơn giá (đ/m²/tháng)</th><th>Tiền thuê (đ/tháng)</th></tr>
+                    </thead>
+                    <tbody>
+                        {% for g in bang_gia %}
+                        <tr>
+                            <td>xx{{ g.so }}</td>
+                            <td>{{ g.DienTich|int }} m²</td>
+                            <td>{{ "{:,.0f}".format(g.DonGiaThue).replace(',', '.') }}</td>
+                            <td><strong>{{ "{:,.0f}".format(g.TienThue).replace(',', '.') }}</strong></td>
+                        </tr>
+                        {% else %}
+                        <tr><td colspan="4">Chưa có dữ liệu phòng</td></tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Ô 3: Danh sách tầng, phòng -->
+        <div class="ct-card">
+            <h3>Danh sách phòng theo tầng</h3>
+            <div class="ct-body">
+                {% for tang, ds_phong in tang_phong.items() %}
+                <div class="tang-hang">
+                    <span class="tang-ten">Tầng {{ tang }}</span>
+                    <div class="tang-phong">
+                        {% for p in ds_phong %}
+                        <span class="phong {{ 'thue' if p in phong_da_thue }}"
+                              title="{{ phong_da_thue.get(p, '') }}">{{ p }}</span>
+                        {% endfor %}
+                    </div>
+                </div>
+                {% endfor %}
+                <div class="chu-giai">
+                    <span class="phong">Trống</span>
+                    <span class="phong thue">Đã thuê</span>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>
+<script>
+    const selPhong = document.getElementById('MaPhong');
+
+    function dinhDang(n) { return Number(n).toLocaleString('de-DE'); }
+
+    function dat(id, giaTri) {
+        const el = document.getElementById(id);
+        if (el) el.value = giaTri;
+    }
+
+    function capNhatPhong() {
+        const o = selPhong.selectedOptions[0];
+        const dt = o && o.dataset.dt ? Number(o.dataset.dt) : null;
+        const dg = o && o.dataset.dg ? Number(o.dataset.dg) : null;
+
+        dat('DonGiaHienThi',   dg !== null ? dinhDang(dg) : '');
+        dat('TienThueHienThi', dt !== null && dg !== null ? dinhDang(dt * dg) : '');
+    }
+
+    selPhong.addEventListener('change', capNhatPhong);
+    capNhatPhong();
+</script>
+{% endblock %}

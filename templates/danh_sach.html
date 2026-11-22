@@ -1,0 +1,152 @@
+{% extends "base.html" %}
+
+{% block title %}Danh sách phân công{% endblock %}
+{% block page_heading %}Nhân viên tòa nhà{% endblock %}
+{% block page_sub %}Bấm Sửa để chỉnh trực tiếp trên dòng{% endblock %}
+
+{% block content %}
+{% include 'luong_tabs.html' %}
+
+<style>
+    tr .sua { display:none; }
+    tr.dang-sua .sua { display:inline-block; }
+    tr.dang-sua .xem { display:none; }
+    tr.dang-sua { background:#fffde7; }
+    .data-table select, .data-table input[type=number] { max-width:150px; }
+    .btn-nho { padding:4px 10px; cursor:pointer; }
+    .btn-xoa { color:#c62828; }
+</style>
+
+<form method="get" class="tim-ct">
+    <input type="text" name="q" value="{{ tu_khoa }}"
+           placeholder="Tìm theo mã hoặc tên nhân viên..."
+           autocomplete="off" class="o-tim"
+           oninput="document.getElementById('nutXoaLoc').classList.toggle('hien', this.value.trim() !== '')">
+
+    <input type="number" name="thang" value="{{ thang }}" min="1" max="12" class="o-so" title="Tháng">
+    <input type="number" name="nam" value="{{ nam }}" min="2000" class="o-so o-nam" title="Năm">
+
+    <button type="submit" class="nut-tim">Tìm</button>
+    <a class="nut-xoa-loc {% if tu_khoa %}hien{% endif %}" id="nutXoaLoc"
+       href="{{ url_for('luong.danh_sach', thang=thang, nam=nam) }}">Xóa lọc</a>
+</form>
+
+<table class="data-table">
+    <thead>
+    <tr>
+        <th class="c-ma">Mã<br>NV</th>
+        <th class="ta-trai c-ten">Họ tên</th>
+        <th class="c-dv">Dịch<br>vụ</th>
+        <th class="cot-vitri">Vị trí</th>
+        <th class="c-nho">Bậc</th>
+        <th class="c-tien">Lương<br>cơ bản</th>
+        <th class="c-nho">Tỷ lệ<br>hoa hồng</th>
+        <th class="c-nho">Hệ số<br>vị trí</th>
+        <th class="c-nho">Ngày<br>công</th>
+        <th class="c-thang">Tháng/<br>Năm</th>
+        <th>Thao tác</th>
+    </tr>
+</thead>
+    <tbody>
+        {% for r in ds %}
+        {% set fid = 'sua-' ~ loop.index %}
+        <tr data-dv="{{ r.MaDV or '' }}" data-vitri="{{ r.ViTri }}">
+            <td>{{ r.MaNV }}</td>
+            <td>{{ r.HoTen }}</td>
+
+            <td>
+                <span class="xem">{{ r.TenDV or 'Hành chính' }}</span>
+                <select class="sua sel-dv" name="ma_dv" form="{{ fid }}"></select>
+            </td>
+
+            <td class="cot-vitri">
+                <span class="xem">{{ r.ViTri }}</span>
+                <select class="sua sel-vt" name="ma_vi_tri" form="{{ fid }}" required></select>
+            </td>
+
+            <td>
+                <span class="xem">{{ r.Bac }}</span>
+                <select class="sua" name="bac" form="{{ fid }}">
+                    {% for b in bac_luong %}
+                    <option value="{{ b.Bac }}" {{ 'selected' if b.Bac == r.Bac }}>Bậc {{ b.Bac }}</option>
+                    {% endfor %}
+                </select>
+            </td>
+
+            <td>{{ "{:,.0f}".format(r.LuongCoBan or 0).replace(',', '.') }}</td>
+            <td>{{ r.TyLeHoaHong if r.TyLeHoaHong is not none else '' }}</td>
+            <td>{{ r.HeSoViTri }}</td>
+
+            <td>
+                <span class="xem">{{ r.SoNgayCong }}</span>
+                <input class="sua" type="number" name="so_ngay_cong" form="{{ fid }}"
+                       value="{{ r.SoNgayCong }}" min="0" max="31" style="width:70px;">
+            </td>
+
+            <td>{{ r.Thang }}/{{ r.Nam }}</td>
+
+            <td style="white-space:nowrap;">
+                <form id="{{ fid }}" method="post"
+                      action="{{ url_for('luong.sua', ma_nv=r.MaNV, thang=r.Thang, nam=r.Nam) }}"></form>
+
+                <button type="button" class="btn-nho xem btn-sua">Sửa</button>
+                <button type="submit" form="{{ fid }}" class="btn-nho sua">Lưu</button>
+                <button type="button" class="btn-nho sua btn-huy">Hủy</button>
+
+                <form method="post" style="display:inline;"
+                    action="{{ url_for('luong.xoa', ma_nv=r.MaNV, thang=r.Thang, nam=r.Nam) }}"
+                    onsubmit="return confirm('Xóa {{ r.MaNV }}? Nếu đây là phân công duy nhất thì hồ sơ nhân viên cũng bị xóa.');">
+                    <button type="submit" class="btn-nho btn-xoa xem">Xóa</button>
+                </form>
+            </td>
+        </tr>
+        {% else %}
+        <tr><td colspan="11">Chưa có nhân viên nào đăng ký trong tháng này</td></tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+<script>
+    const viTri = {{ vi_tri | tojson }};
+    const dichVu = {{ dich_vu | tojson }};
+
+    document.querySelectorAll('tr[data-vitri]').forEach(tr => {
+        const selDV = tr.querySelector('.sel-dv');
+        const selVT = tr.querySelector('.sel-vt');
+
+        function doDV() {
+            selDV.innerHTML = '<option value="">Hành chính</option>';
+            dichVu.forEach(d => {
+                const o = document.createElement('option');
+                o.value = d.MaDV;
+                o.textContent = d.TenDV;
+                if (d.MaDV === tr.dataset.dv) o.selected = true;
+                selDV.appendChild(o);
+            });
+        }
+
+        function doVT(tenGiu) {
+            const dv = selDV.value || null;
+            selVT.innerHTML = '<option value="">-- Chọn vị trí --</option>';
+            viTri.filter(v => v.MaDV === dv).forEach(v => {
+                const o = document.createElement('option');
+                o.value = v.MaViTri;
+                o.textContent = v.TenViTri;
+                if (v.TenViTri === tenGiu) o.selected = true;
+                selVT.appendChild(o);
+            });
+        }
+
+        doDV();
+        doVT(tr.dataset.vitri);
+
+        selDV.addEventListener('change', () => doVT(''));
+        tr.querySelector('.btn-sua').addEventListener('click', () => tr.classList.add('dang-sua'));
+        tr.querySelector('.btn-huy').addEventListener('click', () => {
+            tr.classList.remove('dang-sua');
+            doDV();
+            doVT(tr.dataset.vitri);
+        });
+    });
+</script>
+{% endblock %}

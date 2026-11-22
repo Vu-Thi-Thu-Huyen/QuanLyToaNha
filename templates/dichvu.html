@@ -1,34 +1,32 @@
 {% extends "base.html" %}
 
 {% block title %}Tiền dịch vụ{% endblock %}
-{% block page_heading %}Tiền dịch vụ theo tháng{% endblock %}
-{% block page_sub %}Chi tiết tiền từng dịch vụ của từng công ty{% endblock %}
+{% block page_heading %}Quản lý dịch vụ{% endblock %}
+{% block page_sub %}Tiền dịch vụ của công ty theo tháng{% endblock %}
 
 {% block content %}
-<form method="get" style="margin-bottom:16px;">
-    <label for="thang">Tháng:</label>
-    <input type="number" id="thang" name="thang" min="1" max="12" value="{{ thang }}">
-    <label for="nam">Năm:</label>
-    <input type="number" id="nam" name="nam" value="{{ nam }}">
+{% include '_dichvu_tabs.html' %}
 
-        <input type="text" name="q" list="ds-congty" value="{{ tu_khoa }}"
+<form method="get" class="dv-filter">
+    <input type="text" class="f-ct" name="q" list="ds-congty" value="{{ tu_khoa }}"
            placeholder="Chọn hoặc gõ tên công ty..." autocomplete="off">
     <datalist id="ds-congty">
-        {% for c in ds_congty %}
-        <option value="{{ c }}"></option>
-        {% endfor %}
+        {% for c in ds_congty %}<option value="{{ c }}"></option>{% endfor %}
     </datalist>
 
-    <select name="dv" onchange="this.form.submit()">
+    <input type="number" class="f-so" name="thang" min="1" max="12" value="{{ thang }}" placeholder="Tháng" aria-label="Tháng">
+    <input type="number" class="f-so" name="nam" value="{{ nam }}" placeholder="Năm" aria-label="Năm" style="width:110px">
+
+    <select class="f-dv" name="dv" aria-label="Dịch vụ">
         <option value="">-- Tất cả dịch vụ --</option>
         {% for d in ds_dichvu %}
         <option value="{{ d }}" {% if d == dv %}selected{% endif %}>{{ d }}</option>
         {% endfor %}
     </select>
 
-    <button type="submit">Xem</button>
-    {% if tu_khoa or dv %}
-    <a href="{{ url_for('dichvu.tien_dich_vu', thang=thang, nam=nam) }}">Xóa lọc</a>
+    <button type="submit">Tìm</button>
+    {% if request.args %}
+    <a class="f-clear" href="{{ url_for('dichvu.tien_dich_vu') }}">Xóa lọc</a>
     {% endif %}
 </form>
 
@@ -44,17 +42,21 @@
             <th>Tiền dịch vụ</th>
         </tr>
     </thead>
-    <tbody>
-        {% for r in ds %}
-        <tr>
-            <td>{{ r.TenCT }}</td>
-            <td>{{ r.TenDV }}</td>
-            <td>{{ "{:,.0f}".format(r.DonGia).replace(',', '.') }}</td>
-            <td>{{ r.HeSo }}</td>
-            <td>{{ r.SoNgay }}</td>
-            <td>{{ r.SoNgayTrongThang }}</td>
-            <td>{{ "{:,.0f}".format(r.TienDV).replace(',', '.') }}</td>
-        </tr>
+        <tbody>
+        {% for g in ds|groupby('TenCT') %}
+            {% for r in g.list %}
+            <tr class="{{ 'group-start' if loop.first }}">
+                {% if loop.first %}
+                <td rowspan="{{ g.list|length }}" class="merged-cell">{{ r.TenCT }}</td>
+                {% endif %}
+                <td>{{ r.TenDV }}</td>
+                <td>{{ "{:,.0f}".format(r.DonGia).replace(',', '.') }}</td>
+                <td>{{ r.HeSo }}</td>
+                <td>{{ r.SoNgay }}</td>
+                <td>{{ r.SoNgayTrongThang }}</td>
+                <td>{{ "{:,.0f}".format(r.TienDV).replace(',', '.') }}</td>
+            </tr>
+            {% endfor %}
         {% else %}
         <tr><td colspan="7">Chưa có dữ liệu</td></tr>
         {% endfor %}

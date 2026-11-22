@@ -1,0 +1,159 @@
+{% extends "base.html" %}
+
+{% block title %}Cấp thẻ{% endblock %}
+{% block page_heading %}Ra vào tòa nhà{% endblock %}
+{% block page_sub %}Đăng ký nhân viên, cấp thẻ ra vào cho nhân viên công ty và thu hồi thẻ khi cần{% endblock %}
+
+{% block content %}
+{% include '_ravao_tabs.html' %}
+
+<style>
+    .dv-grid.cap-the-grid {
+        display: grid;
+        grid-template-columns: 2fr 3fr;     /* ô cấp thẻ 40%, thẻ đã cấp 60% */
+        gap: 20px;
+        align-items: start;
+    }
+    .dv-grid.cap-the-grid > .dv-card { min-width: 0; }
+    .cap-the-grid .che-do { display: flex; gap: 18px; margin-bottom: 14px; flex-wrap: wrap; }
+    .cap-the-grid .che-do label { display: flex; align-items: center; gap: 6px; font-weight: 600; cursor: pointer; }
+    .cap-the-grid .hai-cot { display: grid; grid-template-columns: 1fr 1fr; gap: 0 14px; }
+    @media (max-width: 900px) { .dv-grid.cap-the-grid { grid-template-columns: 1fr; } }
+</style>
+
+<div class="dv-grid cap-the-grid">
+    <div class="dv-card">
+        <h2 class="dv-card-head">1. Cấp thẻ mới</h2>
+        <div class="dv-card-body">
+            <form method="post" action="{{ url_for('ravao.cap_the_moi') }}">
+
+                <div class="che-do">
+                    <label><input type="radio" name="che_do" value="moi" checked> Nhân viên mới</label>
+                    <label><input type="radio" name="che_do" value="cu"> Nhân viên đã có (chưa có thẻ)</label>
+                </div>
+
+                <!-- Nhân viên mới -->
+                <div id="khu-moi">
+                    <div class="form-field">
+                        <label for="ma_ct">Công ty *</label>
+                        <select id="ma_ct" name="ma_ct">
+                            <option value="">-- Chọn công ty --</option>
+                            {% for c in ds_ct %}
+                            <option value="{{ c.MaCT }}" {{ 'disabled' if c.ConTrong <= 0 }}>
+                                {{ c.TenCT }} ({{ c.HienCo }}/{{ c.ChoPhep }}{{ ', đã đủ' if c.ConTrong <= 0 }})
+                            </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="form-field">
+                        <label for="ho_ten">Họ tên *</label>
+                        <input type="text" id="ho_ten" name="ho_ten" maxlength="100">
+                    </div>
+                    <div class="hai-cot">
+                        <div class="form-field">
+                            <label for="cccd">CCCD *</label>
+                            <input type="text" id="cccd" name="cccd" maxlength="12"
+                                   inputmode="numeric" placeholder="12 chữ số">
+                        </div>
+                        <div class="form-field">
+                            <label for="sdt">Số điện thoại</label>
+                            <input type="text" id="sdt" name="sdt" maxlength="15" inputmode="tel">
+                        </div>
+                        <div class="form-field">
+                            <label for="ngay_sinh">Ngày sinh</label>
+                            <input type="date" id="ngay_sinh" name="ngay_sinh">
+                        </div>
+                        <div class="form-field">
+                            <label for="gioi_tinh">Giới tính</label>
+                            <select id="gioi_tinh" name="gioi_tinh">
+                                <option value="">-- Không chọn --</option>
+                                <option value="Nam">Nam</option>
+                                <option value="Nu">Nữ</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-field">
+                        <label for="chuc_vu">Chức vụ</label>
+                        <input type="text" id="chuc_vu" name="chuc_vu" maxlength="50">
+                    </div>
+                </div>
+
+                <!-- Nhân viên đã có -->
+                <div id="khu-cu" style="display:none;">
+                    <div class="form-field">
+                        <label for="nv">Nhân viên (chưa có thẻ)</label>
+                        <input type="text" id="nv" name="nv" list="ds-nv"
+                               placeholder="Chọn hoặc gõ tên nhân viên..." autocomplete="off">
+                        <datalist id="ds-nv">
+                            {% for n in ds_nv %}
+                            <option value="{{ n.MaNV }} - {{ n.HoTen }} ({{ n.TenCT }})"></option>
+                            {% endfor %}
+                        </datalist>
+                    </div>
+                </div>
+
+                <div class="form-field">
+                    <label for="ngay">Ngày cấp</label>
+                    <input type="date" id="ngay" name="ngay" value="{{ hom_nay }}" required>
+                </div>
+                <button type="submit" class="btn">Cấp thẻ</button>
+            </form>
+        </div>
+    </div>
+
+    <div class="dv-card">
+        <h2 class="dv-card-head">2. Thẻ đã cấp</h2>
+        <div class="dv-card-body">
+            <div class="table-scroll">
+            <table class="data-table">
+                <thead>
+                    <tr><th>Mã thẻ</th><th>Nhân viên</th><th>Công ty</th><th>Ngày cấp</th><th>Trạng thái</th><th>Thao tác</th></tr>
+                </thead>
+                <tbody>
+                {% for t in ds_the %}
+                    <tr>
+                        <td>{{ t.MaThe }}</td>
+                        <td>{{ t.HoTen }}</td>
+                        <td>{{ t.TenCT }}</td>
+                        <td>{{ t.NgayCap.strftime('%d/%m/%Y') }}</td>
+                        <td>
+                            {% if t.TrangThai == 'HOAT_DONG' %}Hoạt động
+                            {% elif t.TrangThai == 'BI_KHOA' %}Đã thu hồi
+                            {% else %}Hết hạn
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if t.TrangThai == 'HOAT_DONG' %}
+                            <form method="post" action="{{ url_for('ravao.thu_hoi_the', ma_the=t.MaThe) }}"
+                                  onsubmit="return confirm('Thu hồi thẻ này?');">
+                                <button type="submit" class="btn btn-sm btn-danger">Thu hồi</button>
+                            </form>
+                            {% endif %}
+                        </td>
+                    </tr>
+                {% else %}
+                    <tr><td colspan="6">Chưa cấp thẻ nào</td></tr>
+                {% endfor %}
+                </tbody>
+            </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    const khuMoi = document.getElementById('khu-moi');
+    const khuCu = document.getElementById('khu-cu');
+    const batBuoc = {moi: ['ma_ct', 'ho_ten', 'cccd'], cu: ['nv']};
+
+    function doiCheDo() {
+        const cu = document.querySelector('input[name="che_do"]:checked').value === 'cu';
+        khuMoi.style.display = cu ? 'none' : '';
+        khuCu.style.display = cu ? '' : 'none';
+        batBuoc.moi.forEach(id => document.getElementById(id).required = !cu);
+        batBuoc.cu.forEach(id => document.getElementById(id).required = cu);
+    }
+    document.querySelectorAll('input[name="che_do"]').forEach(r => r.addEventListener('change', doiCheDo));
+    doiCheDo();
+</script>
+{% endblock %}

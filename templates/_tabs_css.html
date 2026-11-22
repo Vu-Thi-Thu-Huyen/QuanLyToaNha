@@ -1,0 +1,41 @@
+<style>
+.dv-tabs{display:flex;gap:10px;flex-wrap:wrap;margin:0 0 18px}
+.dv-tabs a.dv-tab{display:inline-block;background:#e6eee9;color:#4f7763;padding:9px 18px;border-radius:10px;font-size:15x;font-weight:600;text-decoration:none;line-height:1.2}
+.dv-tabs a.dv-tab:hover{background:#d8e5dd}
+.dv-tabs a.dv-tab.on{background:#4f7763;color:#fff}
+
+/* ----- chỉ trang 2 ----- */
+.dv-grid{display:grid;grid-template-columns:1fr 1fr;gap:22px;align-items:start}
+@media (max-width:900px){.dv-grid{grid-template-columns:1fr}}
+.dv-card{background:#f1f6f2;border:2px solid #4f7763;border-radius:18px;overflow:hidden}
+.dv-card .dv-card-head{margin:0;background:#4f7763;color:#fff;font-size:15px;font-weight:700;padding:10px 16px}
+.dv-card .dv-card-body{padding:14px 16px 16px}
+.dv-card .form-field{display:block;margin:0 0 10px}
+.dv-card .form-field label{display:block;margin:0 0 4px;font-size:13px;font-weight:600;color:#2a4a3b}
+.dv-card input[type=text],.dv-card input[type=date],.dv-card select{
+  width:100%;height:32px;padding:0 12px;box-sizing:border-box;background:#fff;color:#1f3d30;
+  border:1.5px solid #d3dfd8;border-radius:16px;font-size:13px;font-family:inherit}
+.dv-card input:focus,.dv-card select:focus{outline:none;border-color:#4f7763}
+.dv-card .btn{background:#4f7763;color:#fff;border:0;border-radius:16px;padding:0 20px;height:32px;font-size:13px;font-weight:600;cursor:pointer}
+.dv-card .btn:hover{background:#436a56}
+.dv-card .table-scroll{background:#fff;border-radius:14px;overflow-x:auto}
+.dv-card .data-table{width:100%;margin:0}
+.dv-card .data-table{font-size:13px}
+.dv-card .data-table th,.dv-card .data-table td{padding:8px 10px}
+
+/* ----- thanh lọc kiểu bo tròn viền xanh (giống trang bảng lương) ----- */
+.dv-filter{display:flex;gap:12px;flex-wrap:wrap;align-items:center;margin:0 0 20px}
+.dv-filter input,.dv-filter select{height:34px;box-sizing:border-box;padding:0 14px;background:#fff;color:#1f3d30;
+  border:2px solid #4f7763;border-radius:18px;font-size:14px;font-family:inherit}
+.dv-filter input::placeholder{color:#8fa699}
+.dv-filter input:focus,.dv-filter select:focus{outline:none;box-shadow:0 0 0 3px rgba(79,119,99,.18)}
+.dv-filter .f-ct{flex:0 0 260px}
+.dv-filter .f-so{width:80px;text-align:center}
+.dv-filter .f-dv{flex:0 1 180px}
+.dv-filter button,.dv-filter a.f-clear{height:34px;box-sizing:border-box;padding:0 18px;background:#fff;color:#4f7763;
+  border:2px solid #4f7763;border-radius:18px;font-size:14px;font-weight:600;font-family:inherit;cursor:pointer;
+  display:inline-flex;align-items:center;text-decoration:none}
+.dv-filter button:hover,.dv-filter a.f-clear:hover{background:#e6eee9}
+.dv-filter a.f-clear{background:#4f7763;color:#fff}
+.dv-filter a.f-clear:hover{background:#436a56}
+</style>

@@ -2,38 +2,57 @@
 
 {% block title %}Quản lý công ty{% endblock %}
 {% block page_heading %}Quản lý công ty{% endblock %}
-{% block page_sub %}Công ty thuê văn phòng, tiền thuê và tiền dịch vụ tháng hiện tại{% endblock %}
+{% block page_sub %}Công ty thuê văn phòng, tiền thuê và tiền dịch vụ tháng {{ thang }}/{{ nam }}{% endblock %}
 
 {% block content %}
+{% include 'congty_tabs.html' %}
 
 
-<form method="get" style="margin-bottom:16px; display:flex; gap:10px; align-items:center; flex-wrap:wrap;">
+<style>
+    .tim-ct { display:flex; align-items:center; gap:10px; flex-wrap:wrap; margin-bottom:16px; }
+    .tim-ct .o-tim {
+        width:320px; max-width:100%; box-sizing:border-box;
+        padding:6px 16px; font-size:14px; font-family:inherit; color:#2b3a33;
+        background:#fff; border:2px solid #517563; border-radius:999px; outline:none;
+        transition:box-shadow .2s;
+    }
+    .tim-ct .o-tim::placeholder { color:#9aa8a0; }
+    .tim-ct .o-tim:focus { box-shadow:0 0 0 4px rgba(81,117,99,.15); }
+    .tim-ct .nut-tim {
+        padding:6px 20px; font-size:14px; font-weight:600; font-family:inherit;
+        color:#517563; background:#fff; border:2px solid #517563; border-radius:999px;
+        cursor:pointer; transition:background .2s, color .2s;
+    }
+    .tim-ct .nut-tim:hover { background:#517563; color:#fff; }
+    .tim-ct .nut-xoa-loc {
+        display:none;
+        padding:6px 20px; font-size:14px; font-weight:600; font-family:inherit;
+        color:#fff; background:#517563; border:2px solid #517563; border-radius:999px;
+        text-decoration:none; cursor:pointer; transition:background .2s;
+    }
+    .tim-ct .nut-xoa-loc.hien { display:inline-block; }
+    .tim-ct .nut-xoa-loc:hover { background:#416050; border-color:#416050; }
+</style>
 
-    <input
-        type="text"
-        name="q"
-        value="{{ tu_khoa }}"
-        list="danh-sach-cong-ty"
-        placeholder="Nhập hoặc chọn tên công ty..."
-        autocomplete="off"
-        style="width:320px;"
-    >
-
+<form method="get" class="tim-ct">
+    <input type="text" name="q" value="{{ tu_khoa }}"
+           placeholder="Nhập hoặc chọn tên công ty..."
+           list="danh-sach-cong-ty" autocomplete="off" class="o-tim"
+           oninput="document.getElementById('nutXoaLoc').classList.toggle('hien', this.value.trim() !== '')"
+           onchange="document.getElementById('nutXoaLoc').classList.toggle('hien', this.value.trim() !== '')">
     <datalist id="danh-sach-cong-ty">
-        {% for ten in ten_cong_ty %}
-            <option value="{{ ten }}">
-        {% endfor %}
+        {% for ten in ten_cong_ty %}<option value="{{ ten }}">{% endfor %}
     </datalist>
-
-    <button type="submit">Tìm</button>
-
-    {% if tu_khoa %}
-        <a href="{{ url_for('congty.danh_sach') }}">Xóa lọc</a>
-    {% endif %}
-
+    <input type="number" name="thang" value="{{ thang }}" min="1" max="12" step="1"
+        class="o-tim" style="width:80px;" aria-label="Tháng" title="Tháng" required>
+    <input type="number" name="nam" value="{{ nam }}" min="2000" max="2100" step="1"
+        class="o-tim" style="width:100px;" aria-label="Năm" title="Năm" required>
+    <button type="submit" class="nut-tim">Tìm</button>
+    <a class="nut-xoa-loc {% if tu_khoa %}hien{% endif %}" id="nutXoaLoc"
+       href="{{ url_for('congty.danh_sach') }}">Xóa lọc</a>
 </form>
 
-
+<div class="table-scroll">
 <table class="data-table">
     <thead>
         <tr>
@@ -71,5 +90,16 @@
         <tr><td colspan="12">Chưa có dữ liệu</td></tr>
         {% endfor %}
     </tbody>
+    {% if ds %}
+    <tfoot>
+        <tr>
+            <td colspan="9"><strong>Tổng cộng</strong></td>
+            <td><strong>{{ "{:,.0f}".format(ds | sum(attribute='TienThue')).replace(',', '.') }}</strong></td>
+            <td><strong>{{ "{:,.0f}".format(ds | sum(attribute='TienDichVu')).replace(',', '.') }}</strong></td>
+            <td><strong>{{ "{:,.0f}".format(ds | sum(attribute='TongChiPhi')).replace(',', '.') }}</strong></td>
+        </tr>
+    </tfoot>
+    {% endif %}
 </table>
+</div>
 {% endblock %}

@@ -1,0 +1,8 @@
+{# Thanh tab dùng chung cho 3 trang. CSS thẻ (.dv-card) chỉ dùng ở trang 2. #}
+{% set ep = request.endpoint %}
+{% include '_tabs_css.html' %}
+<nav class="dv-tabs">
+    <a href="{{ url_for('dichvu.tien_dich_vu') }}" class="dv-tab {{ 'on' if ep == 'dichvu.tien_dich_vu' }}">1. Tiền dịch vụ theo tháng</a>
+    <a href="{{ url_for('dichvu.dang_ky') }}" class="dv-tab {{ 'on' if ep == 'dichvu.dang_ky' }}">2. Đăng ký dịch vụ</a>
+    <a href="{{ url_for('dichvu.quan_ly') }}" class="dv-tab {{ 'on' if ep == 'dichvu.quan_ly' }}">3. Danh sách đã đăng ký</a>
+</nav>

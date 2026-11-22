@@ -49,5 +49,25 @@
         </section>
     </main>
 </div>
+<script>
+(function () {
+  const q = document.getElementById('inpQ');
+  const btn = document.getElementById('btnXoaLoc');
+  const form = document.getElementById('formTim');
+  if (!q || !btn || !form) return;
+
+  function capNhat() {
+    btn.classList.toggle('show', q.value.trim() !== '');
+  }
+  q.addEventListener('input', capNhat);
+  q.addEventListener('change', capNhat);
+  capNhat();
+
+  btn.addEventListener('click', function () {
+    q.value = '';
+    form.submit();
+  });
+})();
+</script>
 </body>
 </html>

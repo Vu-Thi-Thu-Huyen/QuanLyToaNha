@@ -1,0 +1,64 @@
+{% extends "base.html" %}
+
+{% block title %}Đăng ký dịch vụ{% endblock %}
+{% block page_heading %}Quản lý dịch vụ{% endblock %}
+{% block page_sub %}Đăng ký dịch vụ mới và đơn giá cơ bản cho công ty{% endblock %}
+
+{% block content %}
+{% include '_dichvu_tabs.html' %}
+
+<div class="dv-grid">
+    <div class="dv-card">
+        <h2 class="dv-card-head">1. Đăng ký dịch vụ cho công ty</h2>
+        <div class="dv-card-body">
+            <form method="post" action="{{ url_for('dichvu.them_dang_ky') }}">
+                <div class="form-field">
+                    <label for="ten_ct">Công ty</label>
+                    <input type="text" id="ten_ct" name="ten_ct" list="ds-congty-dk"
+                           placeholder="Chọn hoặc gõ tên công ty..." autocomplete="off" required>
+                    <datalist id="ds-congty-dk">
+                        {% for c in ds_ct %}<option value="{{ c.TenCT }}"></option>{% endfor %}
+                    </datalist>
+                </div>
+                <div class="form-field">
+                    <label for="ma_dv">Dịch vụ</label>
+                    <select id="ma_dv" name="ma_dv" required>
+                        <option value="">-- Chọn dịch vụ --</option>
+                        {% for d in ds_dv %}<option value="{{ d.MaDV }}">{{ d.TenDV }}</option>{% endfor %}
+                    </select>
+                </div>
+                <div class="form-field">
+                    <label for="ngay">Ngày bắt đầu</label>
+                    <input type="date" id="ngay" name="ngay" value="{{ hom_nay }}" required>
+                </div>
+                <button type="submit" class="btn">Đăng ký</button>
+            </form>
+        </div>
+    </div>
+
+    <div class="dv-card">
+        <h2 class="dv-card-head">2. Đơn giá cơ bản</h2>
+        <div class="dv-card-body">
+            <div class="table-scroll">
+            <table class="data-table">
+                <thead>
+                    <tr><th>Tên DV</th><th>Loại DV</th><th>Đơn Giá (đ/tháng)</th><th>Bắt Buộc</th></tr>
+                </thead>
+                <tbody>
+                {% for d in ds_dv %}
+                    <tr>
+                        <td>{{ d.TenDV }}</td>
+                        <td>{{ d.LoaiDV }}</td>
+                        <td>{{ "{:,.0f}".format(d.DonGia).replace(',', '.') }}</td>
+                        <td>{% if d.BatBuoc %}<span class="badge badge-na">Bắt buộc</span>{% else %}Không{% endif %}</td>
+                    </tr>
+                {% else %}
+                    <tr><td colspan="4">Chưa có dịch vụ</td></tr>
+                {% endfor %}
+                </tbody>
+            </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

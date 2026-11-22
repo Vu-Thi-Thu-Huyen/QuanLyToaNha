@@ -1,0 +1,11 @@
+<div class="luong-tabs">
+    <a href="{{ url_for('luong.bang_luong') }}" class="{{ 'active' if tab == 'bang_luong' }}">1. Bảng lương</a>
+    <a href="{{ url_for('luong.dang_ky') }}" class="{{ 'active' if tab == 'dang_ky' }}">2. Đăng ký phân công</a>
+    <a href="{{ url_for('luong.danh_sach') }}" class="{{ 'active' if tab == 'danh_sach' }}">3. Danh sách đã đăng ký</a>
+</div>
+<style>
+    .luong-tabs { display:flex; gap:8px; margin-bottom:18px; flex-wrap:wrap; }
+    .luong-tabs a { padding:8px 16px; border-radius:8px; background:#e6eee9;
+                    color:#517563; text-decoration:none; font-weight:600; }
+    .luong-tabs a.active { background:#517563; color:#fff; }
+</style>
