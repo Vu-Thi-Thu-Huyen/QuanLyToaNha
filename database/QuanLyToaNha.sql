@@ -19,14 +19,25 @@ USE QuanLyToaNha;
 
 /* ===================================================================== */
 /* PHAN 1. CAC BANG */
-/* Thu tu: CONGTY -> PHONG -> DICHVU -> VITRI_DICHVU -> NHANVIEN_CONGTY -> THE_RA_VAO */
+/* Thu tu: PHONG -> CONGTY -> DICHVU -> VITRI_DICHVU -> NHANVIEN_CONGTY -> THE_RA_VAO */
 /*         -> LICHSU_RA_VAO -> SUDUNGDICHVU -> BAC_LUONG -> NHANVIEN_TOANHA -> PHANCONG */
 /*         -> TAIKHOAN */
+/* PHANCONG tham chieu VITRI_DICHVU qua MaViTri; CONGTY tham chieu PHONG qua MaPhong. */
 /* ===================================================================== */
 
+/* ---------- Nguoi 1 (Chien): PHONG ---------- */
+/* Toa nha 10 tang, moi tang 6 phong (xx01 -> xx06). */
+CREATE TABLE IF NOT EXISTS PHONG (
+    MaPhong     VARCHAR(10)   PRIMARY KEY,
+    Tang        INT           NOT NULL,
+    DienTich    DECIMAL(8,2)  NOT NULL,
+    CONSTRAINT chk_phong_tang     CHECK (Tang BETWEEN 1 AND 10),
+    CONSTRAINT chk_phong_dientich CHECK (DienTich > 0)
+) ENGINE=InnoDB;
+
 /* ---------- Nguoi 1 (Chien): CONGTY ---------- */
-/* Dien tich va don gia thue KHONG luu o day nua: lay tu bang PHONG qua DiaChi. */
-/* DiaChi phai la mot phong co trong bang PHONG, vd 'Tầng 5, phòng 505' (co trigger kiem tra). */
+/* Dien tich lay tu PHONG qua MaPhong; DiaChi giu lai de hien thi tren giao dien. */
+/* MaPhong la FK bat buoc; moi phong toi da mot cong ty thue. */
 CREATE TABLE IF NOT EXISTS CONGTY (
     MaCT        VARCHAR(10)   PRIMARY KEY,
     TenCT       VARCHAR(150)  NOT NULL,
@@ -35,25 +46,16 @@ CREATE TABLE IF NOT EXISTS CONGTY (
     LinhVuc     VARCHAR(100)  NOT NULL,
     SoNhanVien  INT           NOT NULL,                 -- so nhan vien cua cong ty (dung tinh bac nguoi)
     DiaChi      VARCHAR(150)  NOT NULL,
-    MaPhong     VARCHAR(10)   NULL,                 -- phong dang thue (tang, phong)
+    MaPhong     VARCHAR(10)   NOT NULL,                 -- phong dang thue
     SoDienThoai VARCHAR(15)   NOT NULL,
-    CONSTRAINT uq_ct_masothue   UNIQUE (MaSoThue),
+    CONSTRAINT uq_ct_masothue    UNIQUE (MaSoThue),
     CONSTRAINT uq_ct_sodienthoai UNIQUE (SoDienThoai),
-    CONSTRAINT uq_ct_diachi     UNIQUE (DiaChi),        -- moi phong chi co 1 cong ty thue
-    CONSTRAINT chk_ct_masothue  CHECK (MaSoThue REGEXP '^[0-9]{10}([0-9]{3})?$'),
-    CONSTRAINT chk_ct_von       CHECK (VonDieuLe >= 0),
-    CONSTRAINT chk_ct_sonv      CHECK (SoNhanVien >= 0)
-) ENGINE=InnoDB;
-
-/* ---------- Nguoi 1 (Chien): PHONG ---------- */
-/* Toa nha 10 tang, moi tang 6 phong (xx01 -> xx06). Cac phong cung so thu tu o cac tang */
-/* co cung dien tich (501 va 601 deu 150 m2). Don gia thue la mot gia chung cho moi m2 (xem FN_DONGIA_M2). */
-CREATE TABLE IF NOT EXISTS PHONG (
-    MaPhong     VARCHAR(10)   PRIMARY KEY,
-    Tang        INT           NOT NULL,
-    DienTich    DECIMAL(8,2)  NOT NULL,                 -- m2
-    CONSTRAINT chk_phong_tang     CHECK (Tang BETWEEN 1 AND 10),
-    CONSTRAINT chk_phong_dientich CHECK (DienTich > 0)
+    CONSTRAINT uq_ct_diachi      UNIQUE (DiaChi),
+    CONSTRAINT uq_ct_maphong     UNIQUE (MaPhong),       -- moi phong toi da mot cong ty thue
+    CONSTRAINT fk_ct_phong FOREIGN KEY (MaPhong) REFERENCES PHONG(MaPhong),
+    CONSTRAINT chk_ct_masothue CHECK (MaSoThue REGEXP '^[0-9]{10}([0-9]{3})?$'),
+    CONSTRAINT chk_ct_von      CHECK (VonDieuLe >= 0),
+    CONSTRAINT chk_ct_sonv     CHECK (SoNhanVien >= 0)
 ) ENGINE=InnoDB;
 
 /* ---------- Nguoi 3 (Thuy): DICHVU ---------- */
@@ -95,7 +97,7 @@ CREATE TABLE IF NOT EXISTS NHANVIEN_CONGTY (
 
 CREATE TABLE IF NOT EXISTS THE_RA_VAO (
     MaThe      VARCHAR(10) PRIMARY KEY,
-    MaNV       VARCHAR(10) NOT NULL,
+    MaNV       VARCHAR(10) NOT NULL UNIQUE,
     NgayCap    DATE        NOT NULL,
     NgayHetHan DATE,
     TrangThai  VARCHAR(20) NOT NULL DEFAULT 'HOAT_DONG',
@@ -123,7 +125,7 @@ CREATE TABLE IF NOT EXISTS SUDUNGDICHVU (
     NgayBatDau  DATE NOT NULL,
     NgayKetThuc DATE NULL,
     CONSTRAINT fk_sd_ct FOREIGN KEY (MaCT) REFERENCES CONGTY(MaCT) ON DELETE CASCADE,
-CONSTRAINT fk_sd_dv FOREIGN KEY (MaDV) REFERENCES DICHVU(MaDV),
+    CONSTRAINT fk_sd_dv FOREIGN KEY (MaDV) REFERENCES DICHVU(MaDV),
     CONSTRAINT chk_sd_ngay CHECK (NgayKetThuc IS NULL OR NgayKetThuc >= NgayBatDau),
     /* Cho phep dang ky lai cung dich vu o dot khac; trigger chan khoang ngay chong lap */
     CONSTRAINT uq_sd_dot UNIQUE (MaCT, MaDV, NgayBatDau)
@@ -150,43 +152,43 @@ CREATE TABLE IF NOT EXISTS NHANVIEN_TOANHA (
     CONSTRAINT chk_nvtn_gioitinh CHECK (GioiTinh IS NULL OR GioiTinh IN ('Nam','Nu'))
 ) ENGINE=InnoDB;
 
-/* Moi dong = vi tri, bac, dich vu cua 1 nhan vien trong 1 thang (doi vi tri theo thang) */
+/* Moi dong = vi tri, bac cua 1 nhan vien trong 1 thang; MaDV lay tu VITRI_DICHVU. */
+
+
 CREATE TABLE IF NOT EXISTS PHANCONG (
     MaPC       INT AUTO_INCREMENT PRIMARY KEY,
-    MaNV       VARCHAR(10)  NOT NULL,
-    MaDV       VARCHAR(10)  NULL,                       -- NULL = khong thuoc dich vu cu the (hanh chinh, ke toan)
-    ViTri      VARCHAR(100) NOT NULL,                   -- vi tri / khu vuc lam viec
-    Bac        INT          NOT NULL,                   -- bac cong viec trong thang
-    Thang      INT          NOT NULL,
-    Nam        INT          NOT NULL,
-    HeSoViTri  DECIMAL(4,2) NOT NULL DEFAULT 1.00,      -- he so theo vi tri (giam sat, truc dem... cao hon)
-    SoNgayCong INT          NOT NULL DEFAULT 26,
-    CONSTRAINT fk_pc_nv  FOREIGN KEY (MaNV) REFERENCES NHANVIEN_TOANHA(MaNV),
-    CONSTRAINT fk_pc_dv  FOREIGN KEY (MaDV) REFERENCES DICHVU(MaDV),
-    CONSTRAINT fk_pc_bac FOREIGN KEY (Bac)  REFERENCES BAC_LUONG(Bac),
-    CONSTRAINT chk_pc_thang  CHECK (Thang BETWEEN 1 AND 12),
-    CONSTRAINT chk_pc_nam    CHECK (Nam >= 2000),
-    CONSTRAINT chk_pc_heso   CHECK (HeSoViTri > 0),
+    MaNV       VARCHAR(10) NOT NULL,
+    MaViTri    INT         NOT NULL,                    -- vi tri duoc chon tu danh muc VITRI_DICHVU
+    Bac        INT         NOT NULL,
+    Thang      INT         NOT NULL,
+    Nam        INT         NOT NULL,
+    HeSoViTri  DECIMAL(4,2) NOT NULL DEFAULT 1.00,      -- he so chot tai thoi diem phan cong
+    SoNgayCong INT         NOT NULL DEFAULT 26,
+    CONSTRAINT fk_pc_nv     FOREIGN KEY (MaNV) REFERENCES NHANVIEN_TOANHA(MaNV),
+    CONSTRAINT fk_pc_vitri  FOREIGN KEY (MaViTri) REFERENCES VITRI_DICHVU(MaViTri),
+    CONSTRAINT fk_pc_bac    FOREIGN KEY (Bac) REFERENCES BAC_LUONG(Bac),
+    CONSTRAINT chk_pc_thang CHECK (Thang BETWEEN 1 AND 12),
+    CONSTRAINT chk_pc_nam   CHECK (Nam >= 2000),
+    CONSTRAINT chk_pc_heso  CHECK (HeSoViTri > 0),
     CONSTRAINT chk_pc_songay CHECK (SoNgayCong BETWEEN 0 AND 31),
     CONSTRAINT uq_pc_nv_thang UNIQUE (MaNV, Thang, Nam)
 ) ENGINE=InnoDB;
 
-/* ---------- Tai khoan dang nhap cua ung dung ---------- */
+/* ---------- Tai khoan Admin duy nhat, doc lap voi NHANVIEN_TOANHA ---------- */
 CREATE TABLE IF NOT EXISTS TAIKHOAN (
-    ma_tai_khoan  INT AUTO_INCREMENT PRIMARY KEY,
+    ma_tai_khoan  TINYINT NOT NULL DEFAULT 1 PRIMARY KEY,
     ten_dang_nhap VARCHAR(50)  NOT NULL UNIQUE,
     mat_khau_hash VARCHAR(255) NOT NULL,
-    vai_tro       ENUM('admin','nhanvien') NOT NULL DEFAULT 'nhanvien',
+    vai_tro       ENUM('admin') NOT NULL DEFAULT 'admin',
     trang_thai    TINYINT(1)   NOT NULL DEFAULT 1,
-    ma_nv_toanha  VARCHAR(10)  NULL,
-    CONSTRAINT fk_tk_nvtn FOREIGN KEY (ma_nv_toanha) REFERENCES NHANVIEN_TOANHA(MaNV)
+    CONSTRAINT chk_tk_singleton CHECK (ma_tai_khoan = 1)
 ) ENGINE=InnoDB;
 
 /* ===================================================================== */
 /* PHAN 2. VIEW PHONG (dung chung cho ham, thu tuc, view ben duoi) */
 /* ===================================================================== */
 
-/* Phong kem dia chi dang chuoi, de noi voi CONGTY.DiaChi */
+/* View thong tin phong; DiaChi duoc tao de hien thi tren giao dien */
 CREATE OR REPLACE VIEW V_PHONG AS
 SELECT MaPhong, Tang, DienTich,
        CONCAT('Tầng ', Tang, ', phòng ', MaPhong) AS DiaChi
@@ -235,7 +237,7 @@ END$$
 /* Tong tien dich vu cua 1 cong ty trong thang */
 /*   tien = DonGia x he so x (so ngay da dung / so ngay cua thang) */
 /*   so ngay dung tinh tu max(ngay dang ky, dau thang) den min(ngay ket thuc, cuoi thang, hom nay) */
-/*   dien tich de tinh he so lay tu phong (V_PHONG) ma cong ty dang thue */
+/*   dien tich de tinh he so lay tu phong (V_PHONG) ma cong ty dang thue qua MaPhong */
 DROP FUNCTION IF EXISTS FN_TONG_TIEN_DV_CONGTY$$
 CREATE FUNCTION FN_TONG_TIEN_DV_CONGTY(p_mact VARCHAR(10), p_thang INT, p_nam INT)
 RETURNS DECIMAL(18,0) READS SQL DATA
@@ -254,7 +256,7 @@ BEGIN
       INTO v_tong
       FROM SUDUNGDICHVU s
       JOIN CONGTY c   ON c.MaCT = s.MaCT
-      JOIN V_PHONG ph ON ph.DiaChi = c.DiaChi
+      JOIN V_PHONG ph ON ph.MaPhong = c.MaPhong
       JOIN DICHVU d   ON d.MaDV = s.MaDV
      WHERE s.MaCT = p_mact;
     RETURN ROUND(v_tong, 0);
@@ -279,7 +281,7 @@ BEGIN
       INTO v_tong
       FROM SUDUNGDICHVU s
       JOIN CONGTY c   ON c.MaCT = s.MaCT
-      JOIN V_PHONG ph ON ph.DiaChi = c.DiaChi
+      JOIN V_PHONG ph ON ph.MaPhong = c.MaPhong
       JOIN DICHVU d   ON d.MaDV = s.MaDV
      WHERE s.MaDV = p_madv;
     RETURN ROUND(v_tong, 0);
@@ -311,33 +313,7 @@ BEGIN
     END IF;
 END$$
 
-/* (a2) Dia chi cong ty phai la mot phong co that trong bang PHONG */
-DROP TRIGGER IF EXISTS TRG_CT_BI$$
-CREATE TRIGGER TRG_CT_BI BEFORE INSERT ON CONGTY
-FOR EACH ROW
-BEGIN
-    IF NOT EXISTS (SELECT 1 FROM PHONG
-                   WHERE CONCAT('Tầng ', Tang, ', phòng ', MaPhong) = NEW.DiaChi) THEN
-        SIGNAL SQLSTATE '45000'
-            SET MESSAGE_TEXT = 'Dia chi phai la mot phong co trong bang PHONG (vd: Tang 5, phong 501)';
-    END IF;
-END$$
-
-DROP TRIGGER IF EXISTS TRG_CT_BU$$
-CREATE TRIGGER TRG_CT_BU BEFORE UPDATE ON CONGTY
-FOR EACH ROW
-BEGIN
-    IF NEW.SoNhanVien < (SELECT COUNT(*) FROM NHANVIEN_CONGTY WHERE MaCT = NEW.MaCT) THEN
-        SIGNAL SQLSTATE '45000'
-            SET MESSAGE_TEXT = 'SoNhanVien khong duoc nho hon so nhan vien dang co cua cong ty';
-    END IF;
-    IF NEW.DiaChi <> OLD.DiaChi
-       AND NOT EXISTS (SELECT 1 FROM PHONG
-                       WHERE CONCAT('Tầng ', Tang, ', phòng ', MaPhong) = NEW.DiaChi) THEN
-        SIGNAL SQLSTATE '45000'
-            SET MESSAGE_TEXT = 'Dia chi phai la mot phong co trong bang PHONG (vd: Tang 5, phong 501)';
-    END IF;
-END$$
+/* MaPhong duoc kiem soat bang FK fk_ct_phong; DiaChi chi la thong tin hien thi. */
 
 /* (b) Moi nhan vien chi co mot the dang hoat dong */
 DROP TRIGGER IF EXISTS TRG_THE_BI$$
@@ -352,6 +328,7 @@ BEGIN
             SET MESSAGE_TEXT = 'Nhan vien da co the dang hoat dong';
     END IF;
 END$$
+
 
 /* (c) Dich vu bat buoc (Ve sinh, Bao ve): khong duoc xoa / ket thuc */
 DROP TRIGGER IF EXISTS TRG_SD_BI$$
@@ -447,6 +424,7 @@ END$$
 
 DELIMITER ;
 
+
 /* Chi tiet tien dich vu cua tung cong ty trong thang (viet thanh 1 cau lenh, khong can DELIMITER) */
 DROP PROCEDURE IF EXISTS PR_TIEN_DICHVU_CHITIET;
 CREATE PROCEDURE PR_TIEN_DICHVU_CHITIET(IN p_thang INT, IN p_nam INT)
@@ -462,8 +440,9 @@ FROM (SELECT STR_TO_DATE(CONCAT(p_nam, '-', LPAD(p_thang, 2, '0'), '-01'), '%Y-%
                    CURDATE()) AS den) k
 CROSS JOIN SUDUNGDICHVU s
 JOIN CONGTY c   ON c.MaCT = s.MaCT
-JOIN V_PHONG ph ON ph.DiaChi = c.DiaChi
+JOIN V_PHONG ph ON ph.MaPhong = c.MaPhong
 JOIN DICHVU d   ON d.MaDV = s.MaDV
+WHERE FN_NGAY_SD(s.NgayBatDau, s.NgayKetThuc, k.dau, k.den) > 0
 ORDER BY c.MaCT, d.MaDV, s.NgayBatDau;
 
 /* ===================================================================== */
@@ -472,7 +451,7 @@ ORDER BY c.MaCT, d.MaDV, s.NgayBatDau;
 
 /* Truy van 1: thong tin cong ty + tien thue + tien dich vu (thang hien tai, tinh den hom nay) */
 /*   Tien thue = dien tich x don gia m2 (dong/m2/thang)*/
-/*   LEFT JOIN: cong ty chua khop phong nao van hien, dien tich va tien thue = 0 */
+/*   LEFT JOIN giu cong ty trong danh sach; MaPhong la FK bat buoc nen phong luon hop le */
 /* Dung:  SELECT * FROM V_TONG_CHIPHI_CONGTY ORDER BY TongChiPhi DESC; */
 CREATE OR REPLACE VIEW V_TONG_CHIPHI_CONGTY AS
 SELECT t.*, t.TienThue + t.TienDichVu AS TongChiPhi
@@ -484,7 +463,7 @@ FROM (
            ROUND(COALESCE(ph.DienTich, 0) * FN_DONGIA_M2(), 0) AS TienThue,
            FN_TONG_TIEN_DV_CONGTY(c.MaCT, MONTH(CURDATE()), YEAR(CURDATE())) AS TienDichVu
     FROM CONGTY c
-    LEFT JOIN V_PHONG ph ON ph.DiaChi = c.DiaChi
+    LEFT JOIN V_PHONG ph ON ph.MaPhong = c.MaPhong
 ) t;
 
 /* Danh sach phong va trang thai (Da thue / Trong) kem cong ty dang thue */
@@ -497,7 +476,7 @@ SELECT p.MaPhong, p.DienTich,
        c.MaCT, c.TenCT,
        CASE WHEN c.MaCT IS NULL THEN 'Trống' ELSE 'Đã thuê' END AS TrangThai
 FROM V_PHONG p
-LEFT JOIN CONGTY c ON c.DiaChi = p.DiaChi;
+LEFT JOIN CONGTY c ON c.MaPhong = p.MaPhong;
 
 /* Truy van 3: bang luong nhan vien toa nha theo thang */
 /*   Luong = LuongCoBan(bac) / 26 x SoNgayCong x HeSoViTri */
@@ -505,23 +484,27 @@ LEFT JOIN CONGTY c ON c.DiaChi = p.DiaChi;
 /* Dung:  SELECT * FROM V_BANG_LUONG WHERE Thang = 11 AND Nam = 2026 ORDER BY TongLuong DESC; */
 CREATE OR REPLACE VIEW V_BANG_LUONG AS
 SELECT nv.MaNV, nv.HoTen, nv.DiaChi, nv.SoDienThoai,
-       p.Thang, p.Nam, p.Bac, p.ViTri,
+       p.Thang, p.Nam, p.Bac, vt.TenViTri AS ViTri,
        COALESCE(dv.TenDV, 'Không thuộc dịch vụ cụ thể') AS TenDV,
        p.SoNgayCong, p.HeSoViTri, bl.LuongCoBan,
        ROUND(bl.LuongCoBan / 26 * p.SoNgayCong * p.HeSoViTri, 0) AS LuongTheoViTri,
        p.DoanhThuDV, p.SoNguoiCungDV,
-       ROUND(bl.TyLeHoaHong * p.DoanhThuDV / p.SoNguoiCungDV, 0) AS HoaHong,
+       CASE WHEN p.MaDV IS NULL THEN 0
+            ELSE ROUND(bl.TyLeHoaHong * p.DoanhThuDV / NULLIF(p.SoNguoiCungDV, 0), 0) END AS HoaHong,
        ROUND(bl.LuongCoBan / 26 * p.SoNgayCong * p.HeSoViTri, 0)
-         + ROUND(bl.TyLeHoaHong * p.DoanhThuDV / p.SoNguoiCungDV, 0) AS TongLuong
+         + CASE WHEN p.MaDV IS NULL THEN 0
+                ELSE ROUND(bl.TyLeHoaHong * p.DoanhThuDV / NULLIF(p.SoNguoiCungDV, 0), 0) END AS TongLuong
 FROM (
-    SELECT pc.*,
-           CASE WHEN pc.MaDV IS NULL THEN 0
-                ELSE FN_DOANHTHU_DICHVU(pc.MaDV, pc.Thang, pc.Nam) END AS DoanhThuDV,
-           COUNT(*) OVER (PARTITION BY pc.MaDV, pc.Thang, pc.Nam) AS SoNguoiCungDV
+    SELECT pc.*, vt.MaDV,
+           CASE WHEN vt.MaDV IS NULL THEN 0
+                ELSE FN_DOANHTHU_DICHVU(vt.MaDV, pc.Thang, pc.Nam) END AS DoanhThuDV,
+           COUNT(*) OVER (PARTITION BY vt.MaDV, pc.Thang, pc.Nam) AS SoNguoiCungDV
     FROM PHANCONG pc
+    JOIN VITRI_DICHVU vt ON vt.MaViTri = pc.MaViTri
 ) p
 JOIN NHANVIEN_TOANHA nv ON nv.MaNV = p.MaNV
 JOIN BAC_LUONG bl ON bl.Bac = p.Bac
+JOIN VITRI_DICHVU vt ON vt.MaViTri = p.MaViTri
 LEFT JOIN DICHVU dv ON dv.MaDV = p.MaDV;
 
 /* Kiem tra rang buoc: cong ty hien dang THIEU dich vu bat buoc (rong = hop le) */
@@ -577,18 +560,17 @@ CROSS JOIN
 
 /* ---------- CONGTY (10 cong ty, moi cong ty thue 1 phong trong bang PHONG) ---------- */
 INSERT IGNORE INTO CONGTY
-
-(MaCT, TenCT, MaSoThue, VonDieuLe, LinhVuc, SoNhanVien, DiaChi, SoDienThoai) VALUES
-('CT001', 'Công ty TNHH Phần mềm Sao Việt',    '0101234561',  5000000000, 'Phần mềm',             12, 'Tầng 5, phòng 505',   '0241234501'),
-('CT002', 'Công ty CP Thương mại Hòa Bình',    '0101234562',  2000000000, 'Thương mại',            8, 'Tầng 3, phòng 303',   '0241234502'),
-('CT003', 'Công ty CP Tài chính Đại Phát',     '0101234563', 20000000000, 'Tài chính',            25, 'Tầng 8, phòng 804',   '0241234503'),
-('CT004', 'Công ty TNHH Thiết kế Nhà Xanh',    '0101234564',  1500000000, 'Thiết kế - xây dựng',  10, 'Tầng 4, phòng 403',   '0241234504'),
-('CT005', 'Công ty CP Truyền thông Việt Media','0101234565',  3000000000, 'Truyền thông',         15, 'Tầng 6, phòng 605',   '0241234505'),
-('CT006', 'Công ty TNHH Tư vấn Luật An Phát',  '0101234566',  1000000000, 'Tư vấn pháp lý',        6, 'Tầng 2, phòng 203',   '0241234506'),
-('CT007', 'Công ty CP Công nghệ Minh Quang',   '0101234567', 50000000000, 'Công nghệ thông tin',  40, 'Tầng 10, phòng 1002', '0241234507'),
-('CT008', 'Công ty TNHH Du lịch Biển Xanh',    '0101234568',   800000000, 'Du lịch',                9, 'Tầng 2, phòng 201',   '0241234508'),
-('CT009', 'Công ty CP Giáo dục Tri Thức',      '0101234569',  4000000000, 'Giáo dục',             18, 'Tầng 7, phòng 701',   '0241234509'),
-('CT010', 'Công ty TNHH Logistics Nhanh',      '0101234570',  6000000000, 'Vận tải - logistics',  30, 'Tầng 9, phòng 902',   '0241234510');
+(MaCT, TenCT, MaSoThue, VonDieuLe, LinhVuc, SoNhanVien, DiaChi, MaPhong, SoDienThoai) VALUES
+('CT001', 'Công ty TNHH Phần mềm Sao Việt',    '0101234561',  5000000000, 'Phần mềm',             12, 'Tầng 5, phòng 505',   '505', '0241234501'),
+('CT002', 'Công ty CP Thương mại Hòa Bình',    '0101234562',  2000000000, 'Thương mại',            8, 'Tầng 3, phòng 303',   '303', '0241234502'),
+('CT003', 'Công ty CP Tài chính Đại Phát',     '0101234563', 20000000000, 'Tài chính',            25, 'Tầng 8, phòng 804',   '804', '0241234503'),
+('CT004', 'Công ty TNHH Thiết kế Nhà Xanh',    '0101234564',  1500000000, 'Thiết kế - xây dựng',  10, 'Tầng 4, phòng 403',   '403', '0241234504'),
+('CT005', 'Công ty CP Truyền thông Việt Media','0101234565',  3000000000, 'Truyền thông',         15, 'Tầng 6, phòng 605',   '605', '0241234505'),
+('CT006', 'Công ty TNHH Tư vấn Luật An Phát',  '0101234566',  1000000000, 'Tư vấn pháp lý',        6, 'Tầng 2, phòng 203',   '203', '0241234506'),
+('CT007', 'Công ty CP Công nghệ Minh Quang',   '0101234567', 50000000000, 'Công nghệ thông tin',  40, 'Tầng 10, phòng 1002', '1002', '0241234507'),
+('CT008', 'Công ty TNHH Du lịch Biển Xanh',    '0101234568',   800000000, 'Du lịch',                9, 'Tầng 2, phòng 201',   '201', '0241234508'),
+('CT009', 'Công ty CP Giáo dục Tri Thức',      '0101234569',  4000000000, 'Giáo dục',             18, 'Tầng 7, phòng 701',   '701', '0241234509'),
+('CT010', 'Công ty TNHH Logistics Nhanh',      '0101234570',  6000000000, 'Vận tải - logistics',  30, 'Tầng 9, phòng 902',   '902', '0241234510');
 
 /* ---------- DICHVU (don gia = gia co ban 1 thang) ---------- */
 INSERT IGNORE INTO DICHVU (MaDV, TenDV, LoaiDV, DonGia, DonViTinh, BatBuoc) VALUES
@@ -616,6 +598,7 @@ INSERT IGNORE INTO VITRI_DICHVU (MaDV, TenViTri, HeSo) VALUES
 ('DV03', 'Điều phối xe ra vào',             1.10),
 -- DV04: Bảo vệ
 ('DV04', 'Bảo vệ cổng chính',               1.20),
+('DV04', 'Bảo vệ cổng chính và B1',          1.20),
 ('DV04', 'Bảo vệ cổng phụ',                 1.00),
 ('DV04', 'Bảo vệ bãi xe B1',                1.20),
 ('DV04', 'Tuần tra các tầng',               1.20),
@@ -651,7 +634,7 @@ WHERE c.SoNhanVien >= 10
 INSERT INTO SUDUNGDICHVU (MaCT, MaDV, NgayBatDau, NgayKetThuc)
 SELECT c.MaCT, 'DV05', '2026-01-01', '2026-06-30'
 FROM CONGTY c
-JOIN V_PHONG ph ON ph.DiaChi = c.DiaChi
+JOIN V_PHONG ph ON ph.MaPhong = c.MaPhong
 WHERE ph.DienTich >= 100 AND c.MaCT <> 'CT011'
   AND NOT EXISTS (SELECT 1 FROM SUDUNGDICHVU s
                   WHERE s.MaCT = c.MaCT AND s.MaDV = 'DV05' AND s.NgayBatDau = '2026-01-01');
@@ -659,7 +642,7 @@ WHERE ph.DienTich >= 100 AND c.MaCT <> 'CT011'
 INSERT INTO SUDUNGDICHVU (MaCT, MaDV, NgayBatDau, NgayKetThuc)
 SELECT c.MaCT, 'DV05', '2026-09-01', NULL
 FROM CONGTY c
-JOIN V_PHONG ph ON ph.DiaChi = c.DiaChi
+JOIN V_PHONG ph ON ph.MaPhong = c.MaPhong
 WHERE ph.DienTich >= 100 AND c.MaCT <> 'CT011'
   AND NOT EXISTS (SELECT 1 FROM SUDUNGDICHVU s
                   WHERE s.MaCT = c.MaCT AND s.MaDV = 'DV05' AND s.NgayBatDau = '2026-09-01');
@@ -678,18 +661,6 @@ INSERT IGNORE INTO NHANVIEN_CONGTY
 ('NV09', 'CT002', 'Phan Văn Minh',   '001201000009', '2001-12-03', 'Nam', '0901234567', 'Kỹ thuật'),
 ('NV10', 'CT001', 'Lê Thị Ngọc',     '001202000010', '2002-02-14', 'Nu',  '0911122233', 'Nhân viên');
 
-/* ---------- THE_RA_VAO ---------- */
-/* Moi nhan vien mot the (THE01 cho NV01, ...); chi chen khi chua co the nao de chay lai khong loi trigger */
-INSERT INTO THE_RA_VAO (MaThe, MaNV, NgayCap, NgayHetHan, TrangThai)
-SELECT CONCAT('THE', SUBSTRING(nv.MaNV, 3)), nv.MaNV, '2026-01-01', '2027-01-01', 'HOAT_DONG'
-FROM NHANVIEN_CONGTY nv
-WHERE nv.MaNV <> 'NV11' AND NOT EXISTS (SELECT 1 FROM THE_RA_VAO t WHERE t.MaNV = nv.MaNV);
-
-/* ---------- LICHSU_RA_VAO (chi chen khi bang con rong, tranh nhan doi khi chay lai) ---------- */
-INSERT INTO LICHSU_RA_VAO (MaThe, ThoiGian, ViTri, HanhDong)
-SELECT x.MaThe, x.ThoiGian, x.ViTri, x.HanhDong
-FROM (
-    SELECT 'THE01' AS MaThe, '2026-11-05 08:00:00' AS ThoiGian, 'TANG_1' AS ViTri, 'VAO' AS HanhDong
     UNION ALL SELECT 'THE01', '2026-11-05 17:30:00', 'TANG_1', 'RA'
     UNION ALL SELECT 'THE10', '2026-11-05 08:20:00', 'B1', 'VAO'
     UNION ALL SELECT 'THE10', '2026-11-05 17:00:00', 'B1', 'RA'
@@ -744,29 +715,33 @@ INSERT IGNORE INTO NHANVIEN_TOANHA
 ('NVT09', 'Ngô Thị Nga',    '001096000109', '1996-04-12', 'Nu',  '64 Giải Phóng, Hai Bà Trưng, Hà Nội', '0912345609'),
 ('NVT10', 'Đỗ Văn Phúc',    '001097000110', '1997-06-06', 'Nam', '102 Nguyễn Tuân, Thanh Xuân, Hà Nội', '0912345610');
 
-/* ---------- PHANCONG: thang 10 va 11/2026 (co nguoi doi bac, vi tri, dich vu giua hai thang) ---------- */
-INSERT IGNORE INTO PHANCONG (MaNV, MaDV, ViTri, Bac, Thang, Nam, HeSoViTri, SoNgayCong) VALUES
-('NVT01', 'DV04', 'Bảo vệ cổng chính',          2, 10, 2026, 1.20, 26),
-('NVT02', 'DV01', 'Vệ sinh sảnh và tầng 1-5',   1, 10, 2026, 1.00, 24),
-('NVT03', 'DV05', 'Kỹ thuật phòng máy tầng B2', 3, 10, 2026, 1.30, 26),
-('NVT04', 'DV04', 'Giám sát an ninh',           4, 10, 2026, 1.50, 26),
-('NVT05', 'DV01', 'Vệ sinh tầng 6-10',          1, 10, 2026, 1.00, 25),
-('NVT06', 'DV04', 'Bảo vệ bãi xe B1',           2, 10, 2026, 1.20, 26),
-('NVT07', 'DV03', 'Trông giữ xe hầm B2',        2, 10, 2026, 1.00, 26),
-('NVT08', 'DV05', 'Bảo trì hệ thống điều hòa',  3, 10, 2026, 1.30, 22),
-('NVT09', NULL,   'Kế toán ban quản lý',        3, 10, 2026, 1.10, 26),
-('NVT10', 'DV04', 'Bảo vệ cổng phụ',            1, 10, 2026, 1.00, 20),
-
-('NVT01', 'DV04', 'Bảo vệ cổng chính và B1',    2, 11, 2026, 1.20, 26),
-('NVT02', 'DV01', 'Vệ sinh sảnh và tầng 1-5',   1, 11, 2026, 1.00, 24),
-('NVT03', 'DV05', 'Bảo trì trạm điện tầng B2',  3, 11, 2026, 1.30, 26),
-('NVT04', 'DV04', 'Giám sát an ninh',           4, 11, 2026, 1.50, 26),
-('NVT05', 'DV01', 'Vệ sinh tầng 11-15',         1, 11, 2026, 1.00, 26),
-('NVT06', 'DV04', 'Bảo vệ cổng phụ',            2, 11, 2026, 1.20, 26),
-('NVT07', 'DV02', 'Phục vụ căn tin tầng 1',     2, 11, 2026, 1.00, 26),
-('NVT08', 'DV05', 'Bảo trì thang máy',          3, 11, 2026, 1.30, 24),
-('NVT09', NULL,   'Kế toán ban quản lý',        3, 11, 2026, 1.10, 26),
-('NVT10', 'DV04', 'Bảo vệ cổng chính',          2, 11, 2026, 1.00, 26);
+/* ---------- PHANCONG: thang 10 va 11/2026 ---------- */
+/* MaViTri duoc tra cuu tu VITRI_DICHVU theo TenViTri; MaDV duoc suy ra tu vi tri. */
+INSERT IGNORE INTO PHANCONG (MaNV, MaViTri, Bac, Thang, Nam, HeSoViTri, SoNgayCong)
+SELECT x.MaNV, vt.MaViTri, x.Bac, x.Thang, x.Nam, x.HeSoViTri, x.SoNgayCong
+FROM (
+    SELECT 'NVT01' MaNV, 'Bảo vệ cổng chính' TenViTri, 2 Bac, 10 Thang, 2026 Nam, 1.20 HeSoViTri, 26 SoNgayCong
+    UNION ALL SELECT 'NVT02', 'Vệ sinh sảnh và tầng 1-5', 1, 10, 2026, 1.00, 24
+    UNION ALL SELECT 'NVT03', 'Kỹ thuật phòng máy tầng B2', 3, 10, 2026, 1.30, 26
+    UNION ALL SELECT 'NVT04', 'Giám sát an ninh', 4, 10, 2026, 1.50, 26
+    UNION ALL SELECT 'NVT05', 'Vệ sinh tầng 6-10', 1, 10, 2026, 1.00, 25
+    UNION ALL SELECT 'NVT06', 'Bảo vệ bãi xe B1', 2, 10, 2026, 1.20, 26
+    UNION ALL SELECT 'NVT07', 'Trông giữ xe hầm B2', 2, 10, 2026, 1.00, 26
+    UNION ALL SELECT 'NVT08', 'Bảo trì hệ thống điều hòa', 3, 10, 2026, 1.30, 22
+    UNION ALL SELECT 'NVT09', 'Kế toán ban quản lý', 3, 10, 2026, 1.10, 26
+    UNION ALL SELECT 'NVT10', 'Bảo vệ cổng phụ', 1, 10, 2026, 1.00, 20
+    UNION ALL SELECT 'NVT01', 'Bảo vệ cổng chính và B1', 2, 11, 2026, 1.20, 26
+    UNION ALL SELECT 'NVT02', 'Vệ sinh sảnh và tầng 1-5', 1, 11, 2026, 1.00, 24
+    UNION ALL SELECT 'NVT03', 'Bảo trì trạm điện tầng B2', 3, 11, 2026, 1.30, 26
+    UNION ALL SELECT 'NVT04', 'Giám sát an ninh', 4, 11, 2026, 1.50, 26
+    UNION ALL SELECT 'NVT05', 'Vệ sinh tầng 11-15', 1, 11, 2026, 1.00, 26
+    UNION ALL SELECT 'NVT06', 'Bảo vệ cổng phụ', 2, 11, 2026, 1.20, 26
+    UNION ALL SELECT 'NVT07', 'Phục vụ căn tin tầng 1', 2, 11, 2026, 1.00, 26
+    UNION ALL SELECT 'NVT08', 'Bảo trì thang máy', 3, 11, 2026, 1.30, 24
+    UNION ALL SELECT 'NVT09', 'Kế toán ban quản lý', 3, 11, 2026, 1.10, 26
+    UNION ALL SELECT 'NVT10', 'Bảo vệ cổng chính', 2, 11, 2026, 1.00, 26
+) x
+JOIN VITRI_DICHVU vt ON vt.TenViTri = x.TenViTri;
 
 /* ===================================================================== */
 /* DU LIEU DEMO CHO CAC VIEW KIEM TRA RANG BUOC */
@@ -774,9 +749,9 @@ INSERT IGNORE INTO PHANCONG (MaNV, MaDV, ViTri, Bac, Thang, Nam, HeSoViTri, SoNg
 
 -- 1) Công ty mới chỉ đăng ký "Vệ sinh", chưa đăng ký "Bảo vệ" (bắt buộc)
 INSERT IGNORE INTO CONGTY
-(MaCT, TenCT, MaSoThue, VonDieuLe, LinhVuc, SoNhanVien, DiaChi, SoDienThoai) VALUES
+(MaCT, TenCT, MaSoThue, VonDieuLe, LinhVuc, SoNhanVien, DiaChi, MaPhong, SoDienThoai) VALUES
 ('CT011', 'Công ty TNHH Nội thất Gia Phát', '0101234572', 1200000000, 'Nội thất', 8,
- 'Tầng 3, phòng 305', '0241234512');
+ 'Tầng 3, phòng 305', '305', '0241234512');
 
 INSERT INTO SUDUNGDICHVU (MaCT, MaDV, NgayBatDau, NgayKetThuc)
 SELECT 'CT011', 'DV01', '2026-11-01', NULL FROM DUAL
@@ -787,9 +762,6 @@ INSERT IGNORE INTO NHANVIEN_CONGTY
 (MaNV, MaCT, HoTen, CCCD, NgaySinh, GioiTinh, SoDienThoai, ChucVu) VALUES
 ('NV11', 'CT001', 'Nguyễn Văn Phúc', '002200000032', '1997-06-15', 'Nam', '0911000032', 'Nhân viên');
 
-UPDATE CONGTY c JOIN PHONG p
-  ON c.DiaChi = CONCAT('Tầng ', p.Tang, ', phòng ', p.MaPhong)
-SET c.MaPhong = p.MaPhong;
 
 /* ===================================================================== */
 /* PHAN 7. CAC CAU KIEM TRA (bo comment de thu) */
@@ -806,5 +778,5 @@ SET c.MaPhong = p.MaPhong;
 /* Thu rang buoc (phai bao loi): */
 /*   DELETE FROM SUDUNGDICHVU WHERE MaDV = 'DV01' LIMIT 1; */
 /*   INSERT INTO THE_RA_VAO (MaThe, MaNV, NgayCap) VALUES ('THE99', 'NV01', CURDATE()); */
-/*   INSERT INTO CONGTY (MaCT, TenCT, MaSoThue, VonDieuLe, LinhVuc, SoNhanVien, DiaChi, SoDienThoai) */
-/*   VALUES ('CT099', 'Test', '0101234599', 1, 'Test', 1, 'Tầng 99, phòng 999', '0241234599'); */
+/*   INSERT INTO CONGTY (MaCT, TenCT, MaSoThue, VonDieuLe, LinhVuc, SoNhanVien, DiaChi, MaPhong, SoDienThoai) */
+/*   VALUES ('CT099', 'Test', '0101234599', 1, 'Test', 1, 'Tầng 99, phòng 999', '999', '0241234599'); */
