@@ -34,7 +34,8 @@ CREATE TABLE IF NOT EXISTS CONGTY (
     VonDieuLe   DECIMAL(18,0) NOT NULL,
     LinhVuc     VARCHAR(100)  NOT NULL,
     SoNhanVien  INT           NOT NULL,                 -- so nhan vien cua cong ty (dung tinh bac nguoi)
-    DiaChi      VARCHAR(150)  NOT NULL,                 -- phong dang thue (tang, phong)
+    DiaChi      VARCHAR(150)  NOT NULL,
+    MaPhong     VARCHAR(10)   NULL,                 -- phong dang thue (tang, phong)
     SoDienThoai VARCHAR(15)   NOT NULL,
     CONSTRAINT uq_ct_masothue   UNIQUE (MaSoThue),
     CONSTRAINT uq_ct_sodienthoai UNIQUE (SoDienThoai),
@@ -413,11 +414,23 @@ END$$
 DROP PROCEDURE IF EXISTS PR_RAVAO_NGAY$$
 CREATE PROCEDURE PR_RAVAO_NGAY(IN p_ngay DATE)
 BEGIN
-    SELECT nv.MaNV, nv.HoTen, nv.CCCD, nv.NgaySinh, nv.SoDienThoai, c.TenCT,
-           COALESCE(tk.ViTri, 'CHUA_RA_VAO') AS ViTri,
-           COALESCE(tk.SoLanVao, 0) AS SoLanVao,
-           COALESCE(tk.SoLanRa, 0)  AS SoLanRa,
-           COALESCE(tk.SoLanVao, 0) + COALESCE(tk.SoLanRa, 0) AS TongSoLan
+    SELECT
+        (SELECT t.MaThe
+         FROM THE_RA_VAO t
+         WHERE t.MaNV = nv.MaNV
+         ORDER BY (t.TrangThai = 'HOAT_DONG') DESC,
+                  t.NgayCap DESC, t.MaThe DESC
+         LIMIT 1) AS MaThe,
+        nv.MaNV,
+        nv.HoTen,
+        nv.CCCD,
+        nv.NgaySinh,
+        nv.SoDienThoai,
+        c.TenCT,
+        COALESCE(tk.ViTri, 'CHUA_RA_VAO') AS ViTri,
+        COALESCE(tk.SoLanVao, 0) AS SoLanVao,
+        COALESCE(tk.SoLanRa, 0) AS SoLanRa,
+        COALESCE(tk.SoLanVao, 0) + COALESCE(tk.SoLanRa, 0) AS TongSoLan
     FROM NHANVIEN_CONGTY nv
     JOIN CONGTY c ON c.MaCT = nv.MaCT
     LEFT JOIN (
@@ -773,6 +786,10 @@ WHERE NOT EXISTS (SELECT 1 FROM SUDUNGDICHVU WHERE MaCT = 'CT011' AND MaDV = 'DV
 INSERT IGNORE INTO NHANVIEN_CONGTY
 (MaNV, MaCT, HoTen, CCCD, NgaySinh, GioiTinh, SoDienThoai, ChucVu) VALUES
 ('NV11', 'CT001', 'Nguyễn Văn Phúc', '002200000032', '1997-06-15', 'Nam', '0911000032', 'Nhân viên');
+
+UPDATE CONGTY c JOIN PHONG p
+  ON c.DiaChi = CONCAT('Tầng ', p.Tang, ', phòng ', p.MaPhong)
+SET c.MaPhong = p.MaPhong;
 
 /* ===================================================================== */
 /* PHAN 7. CAC CAU KIEM TRA (bo comment de thu) */
